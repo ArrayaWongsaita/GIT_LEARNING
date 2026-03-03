@@ -1,3 +1,5 @@
+import { TransitionLink } from "@/features/transitionNavigate/components/TransitionLink";
+import { PUBLIC_ROUTE } from "@/shared/constants/routes/public.constant";
 import {
   ArrowRight,
   BookOpen,
@@ -7,6 +9,15 @@ import {
   ShieldCheck,
   TerminalSquare,
 } from "lucide-react";
+import { useEffect } from "react";
+import { useParams } from "react-router";
+
+const INTRODUCTION_SECTION_IDS = {
+  "what-is-git": "what-is-git",
+  "what-is-version-control": "what-is-version-control",
+  "local-vs-remote": "local-vs-remote",
+  "basic-git-terms": "basic-git-terms",
+} as const;
 
 const coreFlow = [
   {
@@ -35,9 +46,26 @@ const starterCommands = [
 ] as const;
 
 export default function HomePage() {
+  const { introductionSlug } = useParams();
+
+  useEffect(() => {
+    if (!introductionSlug) return;
+    const sectionId =
+      INTRODUCTION_SECTION_IDS[
+        introductionSlug as keyof typeof INTRODUCTION_SECTION_IDS
+      ];
+    if (!sectionId) return;
+    const section = document.getElementById(sectionId);
+    if (!section) return;
+    section.scrollIntoView({ block: "start", behavior: "smooth" });
+  }, [introductionSlug]);
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-      <section className="relative overflow-hidden rounded-3xl border border-orange-100 bg-gradient-to-br from-orange-50 via-amber-50 to-cyan-50 p-6 shadow-sm md:p-8">
+      <section
+        id="what-is-git"
+        className="scroll-mt-24 relative overflow-hidden rounded-3xl border border-orange-100 bg-gradient-to-br from-orange-50 via-amber-50 to-cyan-50 p-6 shadow-sm md:p-8"
+      >
         <div className="grid items-center gap-6 lg:grid-cols-[1.2fr_1fr]">
           <div>
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white/80 px-3 py-1 text-xs font-medium text-orange-700">
@@ -66,6 +94,16 @@ export default function HomePage() {
                 Safe History
               </span>
             </div>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              <TransitionLink
+                to={PUBLIC_ROUTE.LESSON.SETUP_GIT}
+                className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+              >
+                ไปบทถัดไป: Setup Git
+                <ArrowRight className="size-4" />
+              </TransitionLink>
+            </div>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white/90 p-3 shadow-sm">
@@ -78,7 +116,29 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <section
+        id="what-is-version-control"
+        className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+      >
+        <h3 className="text-xl font-bold text-slate-900">What is Version Control</h3>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          การใช้ Version Control ช่วยให้ย้อนโค้ดย้อนเวลาได้, เทียบความต่างได้, ทำงานหลายคนไม่ชนกันง่าย
+          และลดความเสี่ยงเวลามีบั๊กหลัง deploy
+        </p>
+        <div className="mt-4 grid gap-2 text-sm text-slate-700 md:grid-cols-3">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            บันทึกประวัติทุกการเปลี่ยนแปลง
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            ย้อนกลับเวอร์ชันก่อนหน้าได้ทันที
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            ทำงานร่วมทีมได้เป็นระบบ
+          </div>
+        </div>
+      </section>
+
+      <section id="local-vs-remote" className="scroll-mt-24 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <article className="rounded-2xl border bg-white p-6 shadow-sm">
           <h3 className="text-xl font-bold text-slate-900">โฟลว์พื้นฐานที่ต้องเข้าใจ</h3>
           <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -121,7 +181,10 @@ export default function HomePage() {
         </aside>
       </section>
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-950 p-6 text-slate-100 shadow-sm">
+      <section
+        id="basic-git-terms"
+        className="scroll-mt-24 rounded-2xl border border-slate-800 bg-slate-950 p-6 text-slate-100 shadow-sm"
+      >
         <div className="flex flex-wrap items-center gap-2">
           <ShieldCheck className="size-5 text-emerald-400" />
           <h3 className="text-lg font-bold">ชุดคำสั่งเริ่มต้นที่ควรลองพิมพ์จริง</h3>
