@@ -1,9 +1,9 @@
 import { PUBLIC_ROUTE } from "@/shared/constants/routes/public.constant";
 import { createBrowserRouter, Navigate } from "react-router";
-import LessonPage from "./features/lesson/lesson.page";
 import NotFound from "./shared/pages/notfound.page";
 import MainLayout from "./shared/components/layouts/Main.layout";
 import { introductionRoutes } from "./features/introduction/routes/introduction.route";
+import { setupGitRoutes } from "./features/setup-git/routes/setup-git.routes";
 
 const appRouter = createBrowserRouter(
   [
@@ -21,7 +21,7 @@ const appRouter = createBrowserRouter(
           ),
         },
         introductionRoutes,
-        { path: "lesson/:lessonSlug", Component: LessonPage },
+        setupGitRoutes,
         { path: "*", Component: NotFound },
       ],
     },

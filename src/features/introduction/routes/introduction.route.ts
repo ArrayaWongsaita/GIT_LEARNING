@@ -1,23 +1,29 @@
-import type { RouteObject } from "react-router";
-import WhatIsGitPage from "../pages/WhatIsGit.page";
+import { redirect, type RouteObject } from "react-router";
+import { introductionPath } from "../constants/introduction.path";
 import WhatIsVersionControlPage from "../pages/WhatIsVersionControl.page";
-const introductionRoutesData = {
-  base: "introduction",
-  whatIsGit: "what-is-git",
-  whatIsVersionControl: "what-is-version-control",
-  localVsRemote: "local-vs-remote",
-  basicGitTerms: "basic-git-terms",
-};
+
 export const introductionRoutes: RouteObject = {
-  path: introductionRoutesData.base,
+  path: introductionPath.base.replace("/", ""),
   children: [
     {
-      path: introductionRoutesData.whatIsVersionControl,
+      index: true,
+      loader: () => redirect(introductionPath.getWhatIsGitPath()),
+    },
+    {
+      path: introductionPath.whatIsGit,
       Component: WhatIsVersionControlPage,
     },
     {
-      path: introductionRoutesData.whatIsGit,
-      Component: WhatIsGitPage,
+      path: introductionPath.whatIsVersionControl,
+      Component: WhatIsVersionControlPage,
+    },
+    {
+      path: introductionPath.localVsRemote,
+      Component: WhatIsVersionControlPage,
+    },
+    {
+      path: introductionPath.basicGitTerms,
+      Component: WhatIsVersionControlPage,
     },
   ],
 };
