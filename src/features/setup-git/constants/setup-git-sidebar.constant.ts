@@ -10,5 +10,9 @@ export const SETUP_GIT_SIDE_BAR_DATA: SidebarData = {
       title: "Install Git",
       path: setupGitPath.getInstallGitPath(),
     },
+    {
+      title: "Configure Git",
+      path: setupGitPath.getConfigureGitPath(),
+    },
   ],
 };

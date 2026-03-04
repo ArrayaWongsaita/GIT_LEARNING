@@ -9,35 +9,15 @@ import {
   CommandBlock,
   type CommandCopyStatus,
 } from "@/shared/components/command/CommandBlock";
+import { SetupGuideHeader } from "@/shared/components/setup-guide/SetupGuideHeader";
+import { SetupGuideStepCard } from "@/shared/components/setup-guide/SetupGuideStepCard";
 import {
   SETUP_GIT_IMAGES,
   SETUP_GIT_LINKS,
 } from "@/features/setup-git/constants/setup-git-resource.constant";
+import type { SetupGuidePlatform } from "@/shared/types/setup-guide.type";
 
-type InstallStep = {
-  id: string;
-  title: string;
-  purpose: string;
-  commands: string[];
-  notes?: string;
-  downloadLink?: {
-    href: string;
-    label: string;
-  };
-  previewImage?: {
-    src: string;
-    alt: string;
-  };
-};
-
-type PlatformGuide = {
-  id: string;
-  label: string;
-  summary: string;
-  steps: InstallStep[];
-};
-
-const PLATFORM_GUIDES: PlatformGuide[] = [
+const PLATFORM_GUIDES: SetupGuidePlatform[] = [
   {
     id: "windows",
     label: "Windows",
@@ -117,7 +97,7 @@ const PLATFORM_GUIDES: PlatformGuide[] = [
         purpose:
           "ตั้งค่า shell ให้รู้จักคำสั่ง brew ก่อน แล้วค่อยติดตั้ง Git และตรวจสอบเวอร์ชัน",
         commands: [
-          'echo \'eval "$(/opt/homebrew/bin/brew shellenv)"\' >> ~/.zprofile',
+          "echo 'eval \"$(/opt/homebrew/bin/brew shellenv)\"' >> ~/.zprofile",
           'eval "$(/opt/homebrew/bin/brew shellenv)"',
           "brew install git",
           "git --version",
@@ -181,18 +161,11 @@ export default function InstallGitPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-      <header className="rounded-2xl border border-border bg-gradient-to-br from-primary/10 via-background to-accent/25 p-6">
-        <p className="inline-flex rounded-full border border-primary/30 bg-card px-3 py-1 text-xs font-semibold text-primary">
-          Setup Git
-        </p>
-        <h2 className="mt-3 text-3xl font-black tracking-tight text-foreground">
-          ติดตั้ง Git บน Windows และ Mac
-        </h2>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-          เลือกระบบปฏิบัติการของคุณ แล้วทำตามทีละขั้นตอน แต่ละคำสั่งมีปุ่ม Copy
-          ให้กดใช้งานได้ทันที พร้อมคำอธิบายว่าแต่ละขั้นตอนเอาไว้ทำอะไร
-        </p>
-      </header>
+      <SetupGuideHeader
+        badge="Setup Git"
+        title="ติดตั้ง Git บน Windows และ Mac"
+        description="เลือกระบบปฏิบัติการของคุณ แล้วทำตามทีละขั้นตอน แต่ละคำสั่งมีปุ่ม Copy ให้กดใช้งานได้ทันที พร้อมคำอธิบายว่าแต่ละขั้นตอนเอาไว้ทำอะไร"
+      />
 
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
         <Accordion
@@ -217,72 +190,29 @@ export default function InstallGitPage() {
               <AccordionContent>
                 <ol className="space-y-4 pb-2">
                   {guide.steps.map((step, stepIndex) => (
-                    <li
+                    <SetupGuideStepCard
                       key={step.id}
-                      className="rounded-xl border border-border bg-card p-4"
+                      stepNumber={stepIndex + 1}
+                      title={step.title}
+                      purpose={step.purpose}
+                      notes={step.notes}
+                      downloadLink={step.downloadLink}
+                      previewImage={step.previewImage}
                     >
-                      <div className="flex items-start gap-3">
-                        <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-bold text-primary">
-                          {stepIndex + 1}
-                        </span>
-                        <div className="min-w-0">
-                          <h3 className="text-base font-bold text-foreground">
-                            {step.title}
-                          </h3>
-                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                            <span className="font-semibold text-foreground">
-                              เอาไว้ทำอะไร:
-                            </span>{" "}
-                            {step.purpose}
-                          </p>
-                          {step.notes ? (
-                            <p className="mt-1 text-sm text-muted-foreground">
-                              {step.notes}
-                            </p>
-                          ) : null}
-                        </div>
-                      </div>
+                      {step.commands.map((command, commandIndex) => {
+                        const commandKey = `${guide.id}-${step.id}-${commandIndex}`;
+                        const status = copyStatusByCommand[commandKey];
 
-                      <div className="mt-4 space-y-3">
-                        {step.downloadLink ? (
-                          <a
-                            href={step.downloadLink.href}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-                          >
-                            {step.downloadLink.label}
-                          </a>
-                        ) : null}
-
-                        {step.previewImage ? (
-                          <div className="overflow-hidden rounded-xl border border-border bg-muted/30">
-                            <img
-                              src={step.previewImage.src}
-                              alt={step.previewImage.alt}
-                              className="w-full object-cover"
-                              loading="lazy"
-                            />
-                          </div>
-                        ) : null}
-
-                        {step.commands.map((command, commandIndex) => {
-                          const commandKey = `${guide.id}-${step.id}-${commandIndex}`;
-                          const status = copyStatusByCommand[commandKey];
-
-                          return (
-                            <CommandBlock
-                              key={commandKey}
-                              command={command}
-                              status={status}
-                              onCopy={() =>
-                                handleCopyCommand(commandKey, command)
-                              }
-                            />
-                          );
-                        })}
-                      </div>
-                    </li>
+                        return (
+                          <CommandBlock
+                            key={commandKey}
+                            command={command}
+                            status={status}
+                            onCopy={() => handleCopyCommand(commandKey, command)}
+                          />
+                        );
+                      })}
+                    </SetupGuideStepCard>
                   ))}
                 </ol>
               </AccordionContent>

@@ -4,6 +4,9 @@ import NotFound from "./shared/pages/notfound.page";
 import MainLayout from "./shared/components/layouts/Main.layout";
 import { introductionRoutes } from "./features/introduction/routes/introduction.route";
 import { setupGitRoutes } from "./features/setup-git/routes/setup-git.routes";
+import { basicGitCommandRoutes } from "./features/basic-git-command/routes/basic-git-command.routes";
+import { branchingRoutes } from "./features/branching/routes/branching.routes";
+import { undoHistoryRoutes } from "./features/undo-history/routes/undo-history.routes";
 
 const appRouter = createBrowserRouter(
   [
@@ -22,6 +25,9 @@ const appRouter = createBrowserRouter(
         },
         introductionRoutes,
         setupGitRoutes,
+        basicGitCommandRoutes,
+        branchingRoutes,
+        undoHistoryRoutes,
         { path: "*", Component: NotFound },
       ],
     },

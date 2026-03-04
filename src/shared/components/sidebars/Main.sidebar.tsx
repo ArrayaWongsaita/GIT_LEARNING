@@ -16,11 +16,17 @@ import { useLocation } from "react-router";
 import type { SidebarData } from "@/shared/types/sidebar.type";
 import { INTRODUCTION_SIDE_BAR_DATA } from "@/features/introduction/constants/introduction-sidebar.constant";
 import { SETUP_GIT_SIDE_BAR_DATA } from "@/features/setup-git/constants/setup-git-sidebar.constant";
+import { BASIC_GIT_COMMAND_SIDE_BAR_DATA } from "@/features/basic-git-command/constants/basic-git-command-sidebar.constant";
+import { BRANCHING_SIDE_BAR_DATA } from "@/features/branching/constants/branching-sidebar.constant";
+import { UNDO_HISTORY_SIDE_BAR_DATA } from "@/features/undo-history/constants/undo-history-sidebar.constant";
 import { SidebarMenuItem as MainSidebarMenuItem } from "./SidebarMenuItem";
 
 const MAIN_SIDE_BAR_DATA: SidebarData[] = [
   INTRODUCTION_SIDE_BAR_DATA,
   SETUP_GIT_SIDE_BAR_DATA,
+  BASIC_GIT_COMMAND_SIDE_BAR_DATA,
+  BRANCHING_SIDE_BAR_DATA,
+  UNDO_HISTORY_SIDE_BAR_DATA,
 ];
 
 const normalizePath = (path: string) =>
