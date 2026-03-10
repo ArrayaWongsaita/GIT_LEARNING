@@ -10,5 +10,17 @@ export const BRANCHING_SIDE_BAR_DATA: SidebarData = {
       title: "git branch",
       path: branchingPath.getGitBranchPath(),
     },
+    {
+      title: "git switch",
+      path: branchingPath.getGitSwitchPath(),
+    },
+    {
+      title: "git checkout",
+      path: branchingPath.getGitCheckoutPath(),
+    },
+    {
+      title: "Branch Naming",
+      path: branchingPath.getBranchNamingPath(),
+    },
   ],
 };

@@ -18,7 +18,9 @@ import { INTRODUCTION_SIDE_BAR_DATA } from "@/features/introduction/constants/in
 import { SETUP_GIT_SIDE_BAR_DATA } from "@/features/setup-git/constants/setup-git-sidebar.constant";
 import { BASIC_GIT_COMMAND_SIDE_BAR_DATA } from "@/features/basic-git-command/constants/basic-git-command-sidebar.constant";
 import { BRANCHING_SIDE_BAR_DATA } from "@/features/branching/constants/branching-sidebar.constant";
+import { MERGE_REBASE_SIDE_BAR_DATA } from "@/features/merge-rebase/constants/merge-rebase-sidebar.constant";
 import { UNDO_HISTORY_SIDE_BAR_DATA } from "@/features/undo-history/constants/undo-history-sidebar.constant";
+import { REMOTE_COLLABORATION_SIDE_BAR_DATA } from "@/features/remote-collaboration/constants/remote-collaboration-sidebar.constant";
 import { SidebarMenuItem as MainSidebarMenuItem } from "./SidebarMenuItem";
 
 const MAIN_SIDE_BAR_DATA: SidebarData[] = [
@@ -26,7 +28,9 @@ const MAIN_SIDE_BAR_DATA: SidebarData[] = [
   SETUP_GIT_SIDE_BAR_DATA,
   BASIC_GIT_COMMAND_SIDE_BAR_DATA,
   BRANCHING_SIDE_BAR_DATA,
+  MERGE_REBASE_SIDE_BAR_DATA,
   UNDO_HISTORY_SIDE_BAR_DATA,
+  REMOTE_COLLABORATION_SIDE_BAR_DATA,
 ];
 
 const normalizePath = (path: string) =>

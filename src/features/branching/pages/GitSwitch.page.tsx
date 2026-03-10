@@ -7,16 +7,18 @@ import {
 import { SetupGuideHeader } from "@/shared/components/setup-guide/SetupGuideHeader";
 import { Button } from "@/shared/components/ui/button";
 import {
-  GIT_BRANCH_COMMAND_DOCS,
-  GIT_BRANCH_LAB_STEPS,
-  GIT_BRANCH_SAFETY_NOTES,
-  GIT_BRANCH_SIM_INITIAL_BRANCHES,
-  GIT_BRANCH_SIM_INITIAL_COMMITS,
-  GIT_BRANCH_SIM_INITIAL_CURRENT_BRANCH,
-  GIT_BRANCH_SIM_REMOTE_BRANCHES,
-  type GitBranchSimulatorBranch,
-  type GitBranchSimulatorCommit,
-} from "@/features/branching/constants/git-branch-content.constant";
+  GIT_SWITCH_COMMAND_DOCS,
+  GIT_SWITCH_LAB_STEPS,
+  GIT_SWITCH_SAFETY_NOTES,
+  GIT_SWITCH_SIM_INITIAL_BRANCHES,
+  GIT_SWITCH_SIM_INITIAL_COMMITS,
+  GIT_SWITCH_SIM_INITIAL_CURRENT_REF,
+  GIT_SWITCH_SIM_INITIAL_PREVIOUS_BRANCH,
+  GIT_SWITCH_SIM_REMOTE_BRANCHES,
+  type GitSwitchRefState,
+  type GitSwitchSimulatorBranch,
+  type GitSwitchSimulatorCommit,
+} from "@/features/branching/constants/git-switch-content.constant";
 
 type TerminalTone =
   | "label"
@@ -26,23 +28,22 @@ type TerminalTone =
   | "success"
   | "warning"
   | "hint"
-  | "meta";
+  | "detached";
 
 type TerminalLine = {
   text: string;
   tone: TerminalTone;
 };
 
-type BranchTerminalMode = "local" | "all" | "verbose";
-
 type GraphLabel = {
   text: string;
-  variant: "head" | "main" | "feature" | "remote" | "other";
+  variant: "head" | "main" | "feature" | "remote" | "other" | "detached";
 };
 
 type BranchFilterOption = {
   value: string;
   label: string;
+  isRemote: boolean;
 };
 
 const ALL_BRANCH_FILTER = "__all__";
@@ -60,14 +61,25 @@ const TERMINAL_TONE_CLASS: Record<TerminalTone, string> = {
   success: "text-emerald-300 font-semibold",
   warning: "text-rose-300 font-semibold",
   hint: "text-slate-400",
-  meta: "text-violet-300",
+  detached: "text-violet-300 font-semibold",
 };
 
-const cloneInitialSimulatorBranches = () =>
-  GIT_BRANCH_SIM_INITIAL_BRANCHES.map((branch) => ({ ...branch }));
+const cloneInitialBranches = () =>
+  GIT_SWITCH_SIM_INITIAL_BRANCHES.map((branch) => ({ ...branch }));
 
-const cloneInitialSimulatorCommits = () =>
-  GIT_BRANCH_SIM_INITIAL_COMMITS.map((commit) => ({ ...commit }));
+const cloneInitialCommits = () =>
+  GIT_SWITCH_SIM_INITIAL_COMMITS.map((commit) => ({ ...commit }));
+
+const cloneInitialRef = (): GitSwitchRefState =>
+  GIT_SWITCH_SIM_INITIAL_CURRENT_REF.kind === "branch"
+    ? {
+        kind: "branch",
+        branchName: GIT_SWITCH_SIM_INITIAL_CURRENT_REF.branchName,
+      }
+    : {
+        kind: "detached",
+        commitHash: GIT_SWITCH_SIM_INITIAL_CURRENT_REF.commitHash,
+      };
 
 const waitNextPaint = () =>
   new Promise<void>((resolve) => {
@@ -77,6 +89,17 @@ const waitNextPaint = () =>
   });
 
 const getLaneX = (lane: 0 | 1) => (lane === 0 ? 24 : 58);
+
+const getCurrentCommitHash = (
+  branches: GitSwitchSimulatorBranch[],
+  currentRef: GitSwitchRefState,
+) => {
+  if (currentRef.kind === "detached") {
+    return currentRef.commitHash;
+  }
+
+  return branches.find((branch) => branch.name === currentRef.branchName)?.shortHash;
+};
 
 const getBranchVariant = (branchName: string): GraphLabel["variant"] => {
   if (branchName === "main") {
@@ -90,7 +113,7 @@ const getBranchVariant = (branchName: string): GraphLabel["variant"] => {
 
 const resolveRemoteBranchHash = (
   remoteRef: string,
-  branches: GitBranchSimulatorBranch[],
+  branches: GitSwitchSimulatorBranch[],
 ) => {
   if (!remoteRef.startsWith("remotes/origin/")) {
     return undefined;
@@ -101,34 +124,37 @@ const resolveRemoteBranchHash = (
 };
 
 const getBranchFilterOptions = (
-  branches: GitBranchSimulatorBranch[],
+  branches: GitSwitchSimulatorBranch[],
   showRemoteBranches: boolean,
 ): BranchFilterOption[] => {
-  const localOptions = branches.map((branch) => ({
-    value: branch.name,
-    label: branch.name,
-  }));
-
-  const remoteOptions = showRemoteBranches
-    ? GIT_BRANCH_SIM_REMOTE_BRANCHES.map((remoteBranch) => ({
-        value: remoteBranch,
-        label: remoteBranch,
-      }))
-    : [];
-
-  return [
+  const baseOptions: BranchFilterOption[] = [
     {
       value: ALL_BRANCH_FILTER,
       label: "Show All",
+      isRemote: false,
     },
-    ...localOptions,
-    ...remoteOptions,
   ];
+
+  const localOptions = branches.map((branch) => ({
+    value: branch.name,
+    label: branch.name,
+    isRemote: false,
+  }));
+
+  const remoteOptions = showRemoteBranches
+    ? GIT_SWITCH_SIM_REMOTE_BRANCHES.map((remoteBranch) => ({
+        value: remoteBranch,
+        label: remoteBranch,
+        isRemote: true,
+      }))
+    : [];
+
+  return [...baseOptions, ...localOptions, ...remoteOptions];
 };
 
 const resolveFilterHeadHash = (
   selectedBranchFilter: string,
-  branches: GitBranchSimulatorBranch[],
+  branches: GitSwitchSimulatorBranch[],
   showRemoteBranches: boolean,
 ) => {
   if (selectedBranchFilter === ALL_BRANCH_FILTER) {
@@ -146,7 +172,7 @@ const resolveFilterHeadHash = (
 };
 
 const getVisibleCommits = (
-  commits: GitBranchSimulatorCommit[],
+  commits: GitSwitchSimulatorCommit[],
   filterHeadHash: string | undefined,
 ) => {
   if (!filterHeadHash) {
@@ -160,7 +186,7 @@ const getVisibleCommits = (
   }
 
   const chainIds = new Set<string>();
-  let cursor: GitBranchSimulatorCommit | undefined = startCommit;
+  let cursor: GitSwitchSimulatorCommit | undefined = startCommit;
 
   while (cursor) {
     chainIds.add(cursor.id);
@@ -171,15 +197,15 @@ const getVisibleCommits = (
 };
 
 const buildLabelsByHash = (
-  branches: GitBranchSimulatorBranch[],
-  currentBranch: string,
+  branches: GitSwitchSimulatorBranch[],
+  currentRef: GitSwitchRefState,
   showRemoteBranches: boolean,
 ) => {
   const labelsByHash = new Map<string, GraphLabel[]>();
 
   branches.forEach((branch) => {
     const label: GraphLabel =
-      branch.name === currentBranch
+      currentRef.kind === "branch" && currentRef.branchName === branch.name
         ? { text: `HEAD -> ${branch.name}`, variant: "head" }
         : { text: branch.name, variant: getBranchVariant(branch.name) };
 
@@ -189,7 +215,7 @@ const buildLabelsByHash = (
   });
 
   if (showRemoteBranches) {
-    GIT_BRANCH_SIM_REMOTE_BRANCHES.forEach((remoteRef) => {
+    GIT_SWITCH_SIM_REMOTE_BRANCHES.forEach((remoteRef) => {
       const remoteHash = resolveRemoteBranchHash(remoteRef, branches);
       if (!remoteHash) {
         return;
@@ -204,14 +230,21 @@ const buildLabelsByHash = (
     });
   }
 
+  if (currentRef.kind === "detached") {
+    const detachedLabels = labelsByHash.get(currentRef.commitHash) ?? [];
+    detachedLabels.unshift({ text: "HEAD (detached)", variant: "detached" });
+    labelsByHash.set(currentRef.commitHash, detachedLabels);
+  }
+
   labelsByHash.forEach((labels, hash) => {
     const sorted = [...labels].sort((a, b) => {
       const order: Record<GraphLabel["variant"], number> = {
         head: 0,
-        main: 1,
-        feature: 2,
-        remote: 3,
-        other: 4,
+        detached: 1,
+        main: 2,
+        feature: 3,
+        remote: 4,
+        other: 5,
       };
 
       return order[a.variant] - order[b.variant] || a.text.localeCompare(b.text);
@@ -227,6 +260,9 @@ const getGraphBadgeClassName = (variant: GraphLabel["variant"]) => {
   if (variant === "head") {
     return "border border-cyan-500/30 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300";
   }
+  if (variant === "detached") {
+    return "border border-violet-500/30 bg-violet-500/15 text-violet-700 dark:text-violet-300";
+  }
   if (variant === "main") {
     return "border border-indigo-500/30 bg-indigo-500/15 text-indigo-700 dark:text-indigo-300";
   }
@@ -239,80 +275,45 @@ const getGraphBadgeClassName = (variant: GraphLabel["variant"]) => {
   return "border border-slate-500/30 bg-slate-500/15 text-slate-700 dark:text-slate-300";
 };
 
-const formatUpstreamState = (branch: GitBranchSimulatorBranch) => {
-  if (!branch.upstream) {
-    return "";
-  }
-
-  const state: string[] = [];
-  if (branch.ahead > 0) {
-    state.push(`ahead ${branch.ahead}`);
-  }
-  if (branch.behind > 0) {
-    state.push(`behind ${branch.behind}`);
-  }
-
-  if (!state.length) {
-    return `[${branch.upstream}]`;
-  }
-
-  return `[${branch.upstream}: ${state.join(", ")}]`;
-};
-
-const renderLocalBranchLines = (
-  branches: GitBranchSimulatorBranch[],
-  currentBranch: string,
-): TerminalLine[] =>
-  branches.map((branch) => ({
-    text: `${branch.name === currentBranch ? "* " : "  "}${branch.name}`,
-    tone: branch.name === currentBranch ? "current" : "normal",
-  }));
-
-const renderAllBranchLines = (
-  branches: GitBranchSimulatorBranch[],
-  currentBranch: string,
+const renderBranchListLines = (
+  branches: GitSwitchSimulatorBranch[],
+  currentRef: GitSwitchRefState,
   showRemoteBranches: boolean,
 ): TerminalLine[] => {
-  const lines: TerminalLine[] = [
-    { text: "# local branches", tone: "hint" },
-    ...renderLocalBranchLines(branches, currentBranch),
-    { text: "", tone: "normal" },
-  ];
+  const lines: TerminalLine[] = [];
 
-  if (!showRemoteBranches) {
+  if (currentRef.kind === "detached") {
     lines.push({
-      text: "# remote branches (hidden by toggle)",
-      tone: "hint",
+      text: `* (HEAD detached at ${currentRef.commitHash})`,
+      tone: "detached",
     });
-    return lines;
   }
 
-  lines.push({ text: "# remote branches", tone: "hint" });
-  GIT_BRANCH_SIM_REMOTE_BRANCHES.forEach((remoteBranch) => {
-    lines.push({ text: `  ${remoteBranch}`, tone: "meta" });
+  branches.forEach((branch) => {
+    const isCurrent =
+      currentRef.kind === "branch" && currentRef.branchName === branch.name;
+    lines.push({
+      text: `${isCurrent ? "* " : "  "}${branch.name}`,
+      tone: isCurrent ? "current" : "normal",
+    });
   });
+
+  if (showRemoteBranches) {
+    lines.push({ text: "", tone: "normal" });
+    lines.push({ text: "# remote branches", tone: "hint" });
+    GIT_SWITCH_SIM_REMOTE_BRANCHES.forEach((remoteRef) => {
+      lines.push({
+        text: `  ${remoteRef}`,
+        tone: "hint",
+      });
+    });
+  }
 
   return lines;
 };
 
-const renderVerboseBranchLines = (
-  branches: GitBranchSimulatorBranch[],
-  currentBranch: string,
-): TerminalLine[] =>
-  branches.map((branch) => {
-    const prefix = branch.name === currentBranch ? "* " : "  ";
-    const nameColumn = `${prefix}${branch.name}`.padEnd(24, " ");
-    const upstreamState = formatUpstreamState(branch);
-    const upstreamColumn = upstreamState ? `${upstreamState} ` : "";
-
-    return {
-      text: `${nameColumn}${branch.shortHash} ${upstreamColumn}${branch.lastCommit}`,
-      tone: branch.name === currentBranch ? "current" : "normal",
-    };
-  });
-
 const renderGraphTerminalLines = (
-  commits: GitBranchSimulatorCommit[],
+  commits: GitSwitchSimulatorCommit[],
   labelsByHash: Map<string, GraphLabel[]>,
 ): TerminalLine[] =>
   commits.map((commit, index) => {
@@ -334,89 +335,97 @@ const renderGraphTerminalLines = (
     };
   });
 
-const renderSimulatorLines = ({
+const renderSwitchResultLines = ({
   headline,
   tone,
-  mode,
   branches,
-  currentBranch,
-  showRemoteBranches,
+  currentRef,
   commits,
+  showRemoteBranches,
   labelsByHash,
 }: {
   headline: string;
   tone: TerminalTone;
-  mode: BranchTerminalMode;
-  branches: GitBranchSimulatorBranch[];
-  currentBranch: string;
+  branches: GitSwitchSimulatorBranch[];
+  currentRef: GitSwitchRefState;
+  commits: GitSwitchSimulatorCommit[];
   showRemoteBranches: boolean;
-  commits: GitBranchSimulatorCommit[];
   labelsByHash: Map<string, GraphLabel[]>;
-}): TerminalLine[] => {
-  const commandLabel =
-    mode === "all" ? "git branch -a" : mode === "verbose" ? "git branch -vv" : "git branch";
+}): TerminalLine[] => [
+  { text: headline, tone },
+  { text: "", tone: "normal" },
+  { text: "# git branch", tone: "hint" },
+  ...renderBranchListLines(branches, currentRef, showRemoteBranches),
+  { text: "", tone: "normal" },
+  { text: "# git log --oneline --graph --decorate --all", tone: "hint" },
+  ...renderGraphTerminalLines(commits, labelsByHash),
+];
 
-  const branchLines =
-    mode === "all"
-      ? renderAllBranchLines(branches, currentBranch, showRemoteBranches)
-      : mode === "verbose"
-        ? renderVerboseBranchLines(branches, currentBranch)
-        : renderLocalBranchLines(branches, currentBranch);
+const resolveHeadTildeOneHash = (
+  commits: GitSwitchSimulatorCommit[],
+  currentHash: string | undefined,
+) => {
+  if (!currentHash) {
+    return undefined;
+  }
 
-  return [
-    { text: headline, tone },
-    { text: "", tone: "normal" },
-    { text: `# ${commandLabel}`, tone: "hint" },
-    ...branchLines,
-    { text: "", tone: "normal" },
-    { text: "# git log --oneline --graph --decorate --all", tone: "hint" },
-    ...renderGraphTerminalLines(commits, labelsByHash),
-  ];
+  const currentCommit = commits.find((commit) => commit.shortHash === currentHash);
+  if (!currentCommit?.parentId) {
+    return undefined;
+  }
+
+  return commits.find((commit) => commit.id === currentCommit.parentId)?.shortHash;
 };
 
-export default function GitBranchPage() {
+export default function GitSwitchPage() {
   const [copyStatusByCommand, setCopyStatusByCommand] = useState<
     Record<string, CommandCopyStatus | undefined>
   >({});
-  const [simLocalBranches, setSimLocalBranches] = useState<GitBranchSimulatorBranch[]>(
-    cloneInitialSimulatorBranches,
+  const [simBranches, setSimBranches] = useState<GitSwitchSimulatorBranch[]>(
+    cloneInitialBranches,
   );
-  const [simLastCommand, setSimLastCommand] = useState<string>("git branch");
+  const [simCurrentRef, setSimCurrentRef] = useState<GitSwitchRefState>(cloneInitialRef);
+  const [simPreviousBranch, setSimPreviousBranch] = useState<string | null>(
+    GIT_SWITCH_SIM_INITIAL_PREVIOUS_BRANCH,
+  );
+  const [simLastCommand, setSimLastCommand] = useState<string>(
+    "git switch feature/login",
+  );
   const [simMessage, setSimMessage] = useState<string>(
-    "เริ่มจากดูรายการ branch ด้วย git branch แล้วลองคำสั่งอื่นต่อได้ทันที",
+    "ลองสลับ branch จากปุ่มด้านล่างเพื่อเห็นการย้าย HEAD และ graph pointer",
   );
   const [simTerminalHeadline, setSimTerminalHeadline] = useState<string>(
-    "พร้อมทดลองคำสั่ง git branch",
+    "พร้อมทดลองคำสั่ง git switch",
   );
   const [simTerminalTone, setSimTerminalTone] = useState<TerminalTone>("hint");
-  const [simBranchViewMode, setSimBranchViewMode] = useState<BranchTerminalMode>("local");
-  const [highlightedCommitHash, setHighlightedCommitHash] = useState<string | undefined>();
+  const [highlightedCommitHash, setHighlightedCommitHash] = useState<
+    string | undefined
+  >();
   const [selectedBranchFilter, setSelectedBranchFilter] = useState<string>(
     ALL_BRANCH_FILTER,
   );
   const [showRemoteBranches, setShowRemoteBranches] = useState<boolean>(true);
 
-  const simCurrentBranch = GIT_BRANCH_SIM_INITIAL_CURRENT_BRANCH;
-  const simCommits = useMemo(cloneInitialSimulatorCommits, []);
-
+  const simCommits = useMemo(cloneInitialCommits, []);
   const copyResetTimerRef = useRef<Record<string, number>>({});
   const branchChipRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const commitRowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+  const headBadgeRef = useRef<HTMLSpanElement | null>(null);
   const commitTableBodyRef = useRef<HTMLTableSectionElement | null>(null);
 
   const branchFilterOptions = useMemo(
-    () => getBranchFilterOptions(simLocalBranches, showRemoteBranches),
-    [simLocalBranches, showRemoteBranches],
+    () => getBranchFilterOptions(simBranches, showRemoteBranches),
+    [simBranches, showRemoteBranches],
   );
 
   const filterHeadHash = useMemo(
     () =>
       resolveFilterHeadHash(
         selectedBranchFilter,
-        simLocalBranches,
+        simBranches,
         showRemoteBranches,
       ),
-    [selectedBranchFilter, simLocalBranches, showRemoteBranches],
+    [selectedBranchFilter, simBranches, showRemoteBranches],
   );
 
   const visibleCommits = useMemo(
@@ -425,36 +434,33 @@ export default function GitBranchPage() {
   );
 
   const labelsByHash = useMemo(
-    () => buildLabelsByHash(simLocalBranches, simCurrentBranch, showRemoteBranches),
-    [simLocalBranches, simCurrentBranch, showRemoteBranches],
+    () => buildLabelsByHash(simBranches, simCurrentRef, showRemoteBranches),
+    [simBranches, simCurrentRef, showRemoteBranches],
   );
 
   const currentCommitHash = useMemo(
-    () =>
-      simLocalBranches.find((branch) => branch.name === simCurrentBranch)?.shortHash,
-    [simCurrentBranch, simLocalBranches],
+    () => getCurrentCommitHash(simBranches, simCurrentRef),
+    [simBranches, simCurrentRef],
   );
 
   const simTerminalLines = useMemo(
     () =>
-      renderSimulatorLines({
+      renderSwitchResultLines({
         headline: simTerminalHeadline,
         tone: simTerminalTone,
-        mode: simBranchViewMode,
-        branches: simLocalBranches,
-        currentBranch: simCurrentBranch,
-        showRemoteBranches,
+        branches: simBranches,
+        currentRef: simCurrentRef,
         commits: visibleCommits,
+        showRemoteBranches,
         labelsByHash,
       }),
     [
       simTerminalHeadline,
       simTerminalTone,
-      simBranchViewMode,
-      simLocalBranches,
-      simCurrentBranch,
-      showRemoteBranches,
+      simBranches,
+      simCurrentRef,
       visibleCommits,
+      showRemoteBranches,
       labelsByHash,
     ],
   );
@@ -485,6 +491,74 @@ export default function GitBranchPage() {
       setSelectedBranchFilter(ALL_BRANCH_FILTER);
     }
   }, [showRemoteBranches, selectedBranchFilter]);
+
+  const scheduleStatusReset = (commandKey: string) => {
+    const previousTimerId = copyResetTimerRef.current[commandKey];
+    if (previousTimerId) {
+      window.clearTimeout(previousTimerId);
+    }
+
+    copyResetTimerRef.current[commandKey] = window.setTimeout(() => {
+      setCopyStatusByCommand((prev) => ({
+        ...prev,
+        [commandKey]: undefined,
+      }));
+    }, 1500);
+  };
+
+  const handleCopyCommand = async (commandKey: string, command: string) => {
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard API is unavailable");
+      }
+      await navigator.clipboard.writeText(command);
+      setCopyStatusByCommand((prev) => ({
+        ...prev,
+        [commandKey]: "copied",
+      }));
+    } catch {
+      setCopyStatusByCommand((prev) => ({
+        ...prev,
+        [commandKey]: "error",
+      }));
+    } finally {
+      scheduleStatusReset(commandKey);
+    }
+  };
+
+  const animateHeadMove = async (targetElement: HTMLElement | null) => {
+    const sourceElement = headBadgeRef.current;
+    if (!sourceElement || !targetElement) {
+      return;
+    }
+
+    const fromRect = sourceElement.getBoundingClientRect();
+    const toRect = targetElement.getBoundingClientRect();
+    const cloneElement = sourceElement.cloneNode(true) as HTMLSpanElement;
+    const targetX = toRect.left + toRect.width / 2 - fromRect.left - fromRect.width / 2;
+    const targetY = toRect.top + toRect.height / 2 - fromRect.top - fromRect.height / 2;
+
+    cloneElement.style.position = "fixed";
+    cloneElement.style.left = `${fromRect.left}px`;
+    cloneElement.style.top = `${fromRect.top}px`;
+    cloneElement.style.zIndex = "9999";
+    cloneElement.style.pointerEvents = "none";
+
+    document.body.appendChild(cloneElement);
+
+    try {
+      await animate(cloneElement, {
+        translateX: [0, targetX],
+        translateY: [0, targetY],
+        scale: [1, 1.08, 1],
+        opacity: [0.45, 1, 0.25],
+        duration: 320,
+        ease: "outQuad",
+      });
+    } finally {
+      cloneElement.remove();
+    }
+  };
 
   const animateCommitPulse = async (commitHash: string) => {
     const targetRow = commitRowRefs.current[commitHash];
@@ -519,20 +593,6 @@ export default function GitBranchPage() {
       rowElement.style.opacity = "";
       rowElement.style.transform = "";
     }
-  };
-
-  const animateBranchRowExit = async (branchName: string) => {
-    const rowElement = branchChipRefs.current[branchName];
-    if (!rowElement) {
-      return;
-    }
-
-    await animate(rowElement, {
-      opacity: [1, 0],
-      translateY: [0, -6],
-      duration: 220,
-      ease: "outQuad",
-    });
   };
 
   const animateTableRefresh = async () => {
@@ -574,42 +634,8 @@ export default function GitBranchPage() {
     void animateTableRefresh();
   }, [visibleCommitIdsKey, selectedBranchFilter, showRemoteBranches]);
 
-  const scheduleStatusReset = (commandKey: string) => {
-    const previousTimerId = copyResetTimerRef.current[commandKey];
-    if (previousTimerId) {
-      window.clearTimeout(previousTimerId);
-    }
-
-    copyResetTimerRef.current[commandKey] = window.setTimeout(() => {
-      setCopyStatusByCommand((prev) => ({
-        ...prev,
-        [commandKey]: undefined,
-      }));
-    }, 1500);
-  };
-
-  const handleCopyCommand = async (commandKey: string, command: string) => {
-    try {
-      if (!navigator.clipboard?.writeText) {
-        throw new Error("Clipboard API is unavailable");
-      }
-      await navigator.clipboard.writeText(command);
-      setCopyStatusByCommand((prev) => ({
-        ...prev,
-        [commandKey]: "copied",
-      }));
-    } catch {
-      setCopyStatusByCommand((prev) => ({
-        ...prev,
-        [commandKey]: "error",
-      }));
-    } finally {
-      scheduleStatusReset(commandKey);
-    }
-  };
-
   const normalizeFilter = (
-    nextBranches: GitBranchSimulatorBranch[],
+    nextBranches: GitSwitchSimulatorBranch[],
     nextShowRemoteBranches = showRemoteBranches,
   ) => {
     if (selectedBranchFilter === ALL_BRANCH_FILTER) {
@@ -634,61 +660,130 @@ export default function GitBranchPage() {
     return hasLocal ? selectedBranchFilter : ALL_BRANCH_FILTER;
   };
 
-  const runListLocalBranches = async () => {
-    setSimLastCommand("git branch");
-    setSimBranchViewMode("local");
-    setSimTerminalHeadline("show local branches");
-    setSimTerminalTone("hint");
-    setSimMessage("แสดง local branches และ branch ปัจจุบัน");
+  const runSwitchToBranch = async (targetBranch: string) => {
+    setSimLastCommand(`git switch ${targetBranch}`);
 
-    if (!currentCommitHash) {
-      setHighlightedCommitHash(undefined);
+    const target = simBranches.find((branch) => branch.name === targetBranch);
+    if (!target) {
+      setSimTerminalHeadline(`error: branch '${targetBranch}' not found`);
+      setSimTerminalTone("warning");
+      setSimMessage(`สลับไม่สำเร็จ: ไม่พบ branch ${targetBranch}`);
       return;
     }
 
-    setHighlightedCommitHash(currentCommitHash);
+    if (simCurrentRef.kind === "branch" && simCurrentRef.branchName === targetBranch) {
+      setSimTerminalHeadline(`Already on '${targetBranch}'`);
+      setSimTerminalTone("hint");
+      setSimMessage(`ตอนนี้อยู่ ${targetBranch} อยู่แล้ว`);
+      return;
+    }
+
+    const nextPreviousBranch =
+      simCurrentRef.kind === "branch" ? simCurrentRef.branchName : simPreviousBranch;
+    const nextRef: GitSwitchRefState = { kind: "branch", branchName: targetBranch };
+
+    setSimCurrentRef(nextRef);
+    setSimPreviousBranch(nextPreviousBranch ?? null);
+    setHighlightedCommitHash(target.shortHash);
+    setSimTerminalHeadline(`Switched to branch '${targetBranch}'`);
+    setSimTerminalTone("success");
+    setSimMessage(`สลับไป ${targetBranch} แล้ว`);
+
+    const nextFilter = normalizeFilter(simBranches);
+    if (nextFilter !== selectedBranchFilter) {
+      setSelectedBranchFilter(nextFilter);
+    }
+
     await waitNextPaint();
-    await animateCommitPulse(currentCommitHash);
+    await animateHeadMove(
+      branchChipRefs.current[targetBranch] ?? commitRowRefs.current[target.shortHash] ?? null,
+    );
+    await animateCommitPulse(target.shortHash);
   };
 
-  const runCreateFeatureCartBranch = async () => {
-    const branchName = "feature/cart";
-    setSimLastCommand(`git branch ${branchName}`);
-    setSimBranchViewMode("local");
+  const runSwitchPrevious = async () => {
+    setSimLastCommand("git switch -");
 
-    const alreadyExists = simLocalBranches.some((branch) => branch.name === branchName);
-    if (alreadyExists) {
+    if (!simPreviousBranch) {
+      setSimTerminalHeadline("error: no previous branch found for git switch -");
+      setSimTerminalTone("warning");
+      setSimMessage("สลับไม่สำเร็จ: ยังไม่มี previous branch ให้กลับ");
+      return;
+    }
+
+    const target = simBranches.find((branch) => branch.name === simPreviousBranch);
+    if (!target) {
+      setSimTerminalHeadline(`error: previous branch '${simPreviousBranch}' not found`);
+      setSimTerminalTone("warning");
+      setSimMessage(`สลับไม่สำเร็จ: ไม่พบ previous branch (${simPreviousBranch})`);
+      return;
+    }
+
+    const previousBeforeSwitch =
+      simCurrentRef.kind === "branch" ? simCurrentRef.branchName : null;
+    const nextRef: GitSwitchRefState = {
+      kind: "branch",
+      branchName: simPreviousBranch,
+    };
+
+    setSimCurrentRef(nextRef);
+    setSimPreviousBranch(previousBeforeSwitch);
+    setHighlightedCommitHash(target.shortHash);
+    setSimTerminalHeadline(`Switched to branch '${simPreviousBranch}'`);
+    setSimTerminalTone("success");
+    setSimMessage(`สลับกลับ ${simPreviousBranch} ด้วย git switch - แล้ว`);
+
+    const nextFilter = normalizeFilter(simBranches);
+    if (nextFilter !== selectedBranchFilter) {
+      setSelectedBranchFilter(nextFilter);
+    }
+
+    await waitNextPaint();
+    await animateHeadMove(
+      branchChipRefs.current[simPreviousBranch] ??
+        commitRowRefs.current[target.shortHash] ??
+        null,
+    );
+    await animateCommitPulse(target.shortHash);
+  };
+
+  const runCreateAndSwitchBranch = async (branchName: string) => {
+    setSimLastCommand(`git switch -c ${branchName}`);
+
+    const existed = simBranches.some((branch) => branch.name === branchName);
+    if (existed) {
       setSimTerminalHeadline(`fatal: a branch named '${branchName}' already exists`);
       setSimTerminalTone("warning");
       setSimMessage(`สร้างไม่สำเร็จ: มี branch ${branchName} อยู่แล้ว`);
       return;
     }
 
-    const baseBranch = simLocalBranches.find((branch) => branch.name === simCurrentBranch);
-    if (!baseBranch) {
-      setSimTerminalHeadline("error: failed to resolve current branch");
+    const currentHash = getCurrentCommitHash(simBranches, simCurrentRef);
+    if (!currentHash) {
+      setSimTerminalHeadline("error: unable to resolve current HEAD");
       setSimTerminalTone("warning");
-      setSimMessage("สร้างไม่สำเร็จ: ไม่พบ branch ปัจจุบันในสถานะจำลอง");
+      setSimMessage("สร้างไม่สำเร็จ: ไม่พบตำแหน่ง HEAD ปัจจุบัน");
       return;
     }
 
-    const nextBranches = [
-      ...simLocalBranches,
-      {
-        name: branchName,
-        shortHash: baseBranch.shortHash,
-        lastCommit: `branch from ${simCurrentBranch}`,
-        merged: false,
-        ahead: 0,
-        behind: 0,
-      },
-    ];
+    const nextBranch: GitSwitchSimulatorBranch = {
+      name: branchName,
+      shortHash: currentHash,
+      ahead: 0,
+      behind: 0,
+    };
+    const nextBranches = [...simBranches, nextBranch];
+    const nextPreviousBranch =
+      simCurrentRef.kind === "branch" ? simCurrentRef.branchName : simPreviousBranch;
+    const nextRef: GitSwitchRefState = { kind: "branch", branchName };
 
-    setSimLocalBranches(nextBranches);
-    setSimTerminalHeadline(`branch '${branchName}' created`);
+    setSimBranches(nextBranches);
+    setSimCurrentRef(nextRef);
+    setSimPreviousBranch(nextPreviousBranch ?? null);
+    setHighlightedCommitHash(currentHash);
+    setSimTerminalHeadline(`Switched to a new branch '${branchName}'`);
     setSimTerminalTone("success");
-    setSimMessage(`สร้าง ${branchName} สำเร็จ (ยังอยู่ที่ ${simCurrentBranch})`);
-    setHighlightedCommitHash(baseBranch.shortHash);
+    setSimMessage(`สร้างและสลับไป ${branchName} เรียบร้อย`);
 
     const nextFilter = normalizeFilter(nextBranches);
     if (nextFilter !== selectedBranchFilter) {
@@ -697,93 +792,45 @@ export default function GitBranchPage() {
 
     await waitNextPaint();
     await animateBranchRowEnter(branchName);
-    await animateCommitPulse(baseBranch.shortHash);
-  };
-
-  const runListAllBranches = async () => {
-    setSimLastCommand("git branch -a");
-    setSimBranchViewMode("all");
-    setSimTerminalHeadline("show local and remote branches");
-    setSimTerminalTone("hint");
-    setSimMessage("แสดงทั้ง local และ remote-tracking branches");
-
-    if (!filterHeadHash) {
-      setHighlightedCommitHash(undefined);
-      return;
-    }
-
-    setHighlightedCommitHash(filterHeadHash);
-    await waitNextPaint();
-    await animateCommitPulse(filterHeadHash);
-  };
-
-  const runListVerboseBranches = async () => {
-    setSimLastCommand("git branch -vv");
-    setSimBranchViewMode("verbose");
-    setSimTerminalHeadline("show branches with upstream status");
-    setSimTerminalTone("hint");
-    setSimMessage("แสดง branch พร้อม hash ล่าสุดและความสัมพันธ์ upstream");
-
-    if (!filterHeadHash) {
-      setHighlightedCommitHash(undefined);
-      return;
-    }
-
-    setHighlightedCommitHash(filterHeadHash);
-    await waitNextPaint();
-    await animateCommitPulse(filterHeadHash);
-  };
-
-  const runDeleteBranch = async (branchName: string, force: boolean) => {
-    setSimLastCommand(`git branch ${force ? "-D" : "-d"} ${branchName}`);
-    setSimBranchViewMode("local");
-
-    const targetBranch = simLocalBranches.find((branch) => branch.name === branchName);
-    if (!targetBranch) {
-      setSimTerminalHeadline(`error: branch '${branchName}' not found`);
-      setSimTerminalTone("warning");
-      setSimMessage(`ลบไม่สำเร็จ: ไม่พบ branch ${branchName}`);
-      return;
-    }
-
-    if (targetBranch.name === simCurrentBranch) {
-      setSimTerminalHeadline(
-        `error: Cannot delete branch '${branchName}' checked out at '${simCurrentBranch}'`,
-      );
-      setSimTerminalTone("warning");
-      setSimMessage("ลบไม่สำเร็จ: ห้ามลบ branch ที่กำลังใช้งาน");
-      return;
-    }
-
-    if (!force && !targetBranch.merged) {
-      setSimTerminalHeadline(`error: The branch '${branchName}' is not fully merged.`);
-      setSimTerminalTone("warning");
-      setSimMessage(
-        `ลบไม่สำเร็จ: ${branchName} ยังไม่ merge (แนะนำ git branch -D ${branchName} ถ้าต้องการบังคับลบ)`,
-      );
-      return;
-    }
-
-    await animateBranchRowExit(branchName);
-
-    const nextBranches = simLocalBranches.filter((branch) => branch.name !== branchName);
-    setSimLocalBranches(nextBranches);
-    setSimTerminalHeadline(`Deleted branch ${branchName} (${targetBranch.shortHash}).`);
-    setSimTerminalTone("success");
-    setSimMessage(
-      force
-        ? `ลบ ${branchName} แบบบังคับแล้ว`
-        : `ลบ ${branchName} สำเร็จ (merge แล้ว)`,
+    await animateHeadMove(
+      branchChipRefs.current[branchName] ?? commitRowRefs.current[currentHash] ?? null,
     );
-    setHighlightedCommitHash(targetBranch.shortHash);
+    await animateCommitPulse(currentHash);
+  };
 
-    const nextFilter = normalizeFilter(nextBranches);
+  const runDetachHeadPrev = async () => {
+    setSimLastCommand("git switch --detach HEAD~1");
+
+    const targetHash = resolveHeadTildeOneHash(simCommits, currentCommitHash);
+    if (!targetHash) {
+      setSimTerminalHeadline("error: unable to resolve HEAD~1");
+      setSimTerminalTone("warning");
+      setSimMessage("detach ไม่สำเร็จ: ไม่สามารถหา HEAD~1 ได้จาก graph ปัจจุบัน");
+      return;
+    }
+
+    const nextPreviousBranch =
+      simCurrentRef.kind === "branch" ? simCurrentRef.branchName : simPreviousBranch;
+    const nextRef: GitSwitchRefState = {
+      kind: "detached",
+      commitHash: targetHash,
+    };
+
+    setSimCurrentRef(nextRef);
+    setSimPreviousBranch(nextPreviousBranch ?? null);
+    setHighlightedCommitHash(targetHash);
+    setSimTerminalHeadline(`HEAD is now at ${targetHash}`);
+    setSimTerminalTone("detached");
+    setSimMessage(`ย้าย HEAD แบบ detached ไปที่ ${targetHash}`);
+
+    const nextFilter = normalizeFilter(simBranches);
     if (nextFilter !== selectedBranchFilter) {
       setSelectedBranchFilter(nextFilter);
     }
 
     await waitNextPaint();
-    await animateCommitPulse(targetBranch.shortHash);
+    await animateHeadMove(commitRowRefs.current[targetHash] ?? null);
+    await animateCommitPulse(targetHash);
   };
 
   const handleBranchFilterChange = async (nextFilter: string) => {
@@ -800,7 +847,7 @@ export default function GitBranchPage() {
     );
     setSimTerminalTone("hint");
 
-    const nextHash = resolveFilterHeadHash(nextFilter, simLocalBranches, showRemoteBranches);
+    const nextHash = resolveFilterHeadHash(nextFilter, simBranches, showRemoteBranches);
     if (nextHash) {
       setHighlightedCommitHash(nextHash);
       setSimMessage(`กรองประวัติด้วย ${nextFilter}`);
@@ -840,11 +887,11 @@ export default function GitBranchPage() {
   };
 
   const resetSimulator = () => {
-    const initialBranches = cloneInitialSimulatorBranches();
-    setSimLocalBranches(initialBranches);
+    setSimBranches(cloneInitialBranches());
+    setSimCurrentRef(cloneInitialRef());
+    setSimPreviousBranch(GIT_SWITCH_SIM_INITIAL_PREVIOUS_BRANCH);
     setSimLastCommand("Reset Demo");
-    setSimBranchViewMode("local");
-    setSimTerminalHeadline("พร้อมทดลองคำสั่ง git branch");
+    setSimTerminalHeadline("พร้อมทดลองคำสั่ง git switch");
     setSimTerminalTone("hint");
     setSimMessage("รีเซ็ต simulator กลับค่าเริ่มต้นแล้ว");
     setHighlightedCommitHash(undefined);
@@ -856,21 +903,18 @@ export default function GitBranchPage() {
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <SetupGuideHeader
         badge="Branching"
-        title="git branch: สร้าง ดู และลบ Branch อย่างปลอดภัย"
-        description="branch คือเส้นงานแยกที่ช่วยให้คุณพัฒนาฟีเจอร์หรือแก้บั๊กโดยไม่กระทบ main โดยตรง แล้วค่อยรวมกลับเมื่อพร้อม"
+        title="git switch: สลับและสร้าง Branch ให้ปลอดภัย"
+        description="เรียนรู้การสลับ context งานระหว่าง branch, การสร้าง branch ใหม่พร้อมสลับ, และข้อควรระวังก่อน switch เพื่อป้องกันงานหาย"
       />
 
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
         <h2 className="text-xl font-black tracking-tight text-foreground">Command Explanation</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          คำสั่งหลักของ git branch ที่ต้องใช้ในงานจริง ตั้งแต่สร้าง branch ไปจนถึงลบ branch
-        </p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          การสลับ branch ดูที่หน้า <span className="font-semibold text-foreground">git switch</span>
+          คำสั่งหลักของ git switch สำหรับการทำงาน branch แบบรายวัน
         </p>
 
         <div className="mt-4 space-y-4">
-          {GIT_BRANCH_COMMAND_DOCS.map((doc) => {
+          {GIT_SWITCH_COMMAND_DOCS.map((doc) => {
             const commandKey = `doc-${doc.id}`;
             const status = copyStatusByCommand[commandKey];
 
@@ -904,7 +948,7 @@ export default function GitBranchPage() {
       </section>
 
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
-        <h2 className="text-xl font-black tracking-tight text-foreground">Interactive Branch Simulator</h2>
+        <h2 className="text-xl font-black tracking-tight text-foreground">Interactive Switch Simulator</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
           ปรับมุมมองให้ใกล้ Git Graph: มี branch filter, remote toggle, commit table และกราฟเส้น branch แบบอ่านง่าย
         </p>
@@ -914,64 +958,46 @@ export default function GitBranchPage() {
             type="button"
             variant="secondary"
             onClick={() => {
-              void runListLocalBranches();
+              void runSwitchToBranch("feature/login");
             }}
           >
-            git branch
+            git switch feature/login
           </Button>
           <Button
             type="button"
             variant="secondary"
             onClick={() => {
-              void runCreateFeatureCartBranch();
+              void runSwitchToBranch("main");
             }}
           >
-            git branch feature/cart
+            git switch main
           </Button>
           <Button
             type="button"
             variant="secondary"
             onClick={() => {
-              void runListAllBranches();
+              void runSwitchPrevious();
             }}
           >
-            git branch -a
+            git switch -
           </Button>
           <Button
             type="button"
             variant="secondary"
             onClick={() => {
-              void runListVerboseBranches();
+              void runCreateAndSwitchBranch("feature/cart");
             }}
           >
-            git branch -vv
+            git switch -c feature/cart
           </Button>
           <Button
             type="button"
             variant="secondary"
             onClick={() => {
-              void runDeleteBranch("feature/profile", false);
+              void runDetachHeadPrev();
             }}
           >
-            git branch -d feature/profile
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => {
-              void runDeleteBranch("feature/login", false);
-            }}
-          >
-            git branch -d feature/login
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => {
-              void runDeleteBranch("feature/profile", true);
-            }}
-          >
-            git branch -D feature/profile
+            git switch --detach HEAD~1
           </Button>
           <Button type="button" variant="outline" onClick={resetSimulator}>
             Reset Demo
@@ -1011,11 +1037,15 @@ export default function GitBranchPage() {
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-cyan-500/30 bg-cyan-500/15 px-2.5 py-1 text-xs font-semibold text-cyan-300">
+              <span
+                ref={headBadgeRef}
+                className="rounded-full border border-cyan-500/30 bg-cyan-500/15 px-2.5 py-1 text-xs font-semibold text-cyan-300"
+              >
                 HEAD
               </span>
-              {simLocalBranches.map((branch) => {
-                const isCurrent = branch.name === simCurrentBranch;
+              {simBranches.map((branch) => {
+                const isCurrent =
+                  simCurrentRef.kind === "branch" && simCurrentRef.branchName === branch.name;
 
                 return (
                   <button
@@ -1030,7 +1060,7 @@ export default function GitBranchPage() {
                         : "border border-[#555] bg-[#2b2b2b] text-slate-200"
                     }`}
                     onClick={() => {
-                      void handleBranchFilterChange(branch.name);
+                      void runSwitchToBranch(branch.name);
                     }}
                   >
                     {branch.name}
@@ -1038,17 +1068,13 @@ export default function GitBranchPage() {
                 );
               })}
               {showRemoteBranches
-                ? GIT_BRANCH_SIM_REMOTE_BRANCHES.map((remoteBranch) => (
-                    <button
+                ? GIT_SWITCH_SIM_REMOTE_BRANCHES.map((remoteBranch) => (
+                    <span
                       key={remoteBranch}
-                      type="button"
                       className="rounded-full border border-lime-500/30 bg-lime-500/10 px-2.5 py-1 text-xs font-semibold text-lime-300"
-                      onClick={() => {
-                        void handleBranchFilterChange(remoteBranch);
-                      }}
                     >
                       {remoteBranch.replace("remotes/", "")}
-                    </button>
+                    </span>
                   ))
                 : null}
             </div>
@@ -1201,10 +1227,10 @@ export default function GitBranchPage() {
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
         <h2 className="text-xl font-black tracking-tight text-foreground">Safety Notes</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          ก่อนลบ branch ควรตรวจสถานะให้ชัดเจนเพื่อลดความเสี่ยงทำงานหาย
+          ก่อนสลับ branch ควรตรวจสถานะไฟล์ค้างให้ชัดเจนเพื่อเลี่ยง conflict ที่ไม่ตั้งใจ
         </p>
         <ul className="mt-4 list-disc space-y-2 rounded-xl border border-border bg-muted/30 p-4 pl-8 text-sm leading-6 text-foreground">
-          {GIT_BRANCH_SAFETY_NOTES.map((note) => (
+          {GIT_SWITCH_SAFETY_NOTES.map((note) => (
             <li key={note}>{note}</li>
           ))}
         </ul>
@@ -1213,11 +1239,11 @@ export default function GitBranchPage() {
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
         <h2 className="text-xl font-black tracking-tight text-foreground">Mini Lab</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          ทำตามลำดับนี้บนเครื่องจริงเพื่อเห็น flow การสร้าง สลับ merge และลบ branch ให้ครบ
+          ทำตามลำดับนี้เพื่อฝึกการ switch branch จริงตั้งแต่สร้าง branch ถึง detached HEAD
         </p>
 
         <ol className="mt-4 space-y-4">
-          {GIT_BRANCH_LAB_STEPS.map((step, stepIndex) => (
+          {GIT_SWITCH_LAB_STEPS.map((step, stepIndex) => (
             <li key={step.id} className="rounded-xl border border-border bg-muted/30 p-4">
               <div className="flex items-start gap-3">
                 <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-bold text-primary">

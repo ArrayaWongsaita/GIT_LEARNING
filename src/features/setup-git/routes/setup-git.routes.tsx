@@ -1,7 +1,5 @@
 import { Navigate, type RouteObject } from "react-router";
 import { setupGitPath } from "../constants/setup-git.path.constant";
-import InstallGitPage from "../pages/Install-git.page";
-import ConfigGitPage from "../pages/Config-git.page";
 
 export const setupGitRoutes: RouteObject = {
   path: setupGitPath.base.replace("/", ""),
@@ -12,11 +10,17 @@ export const setupGitRoutes: RouteObject = {
     },
     {
       path: setupGitPath.getInstallGitPath(),
-      Component: InstallGitPage,
+      lazy: async () => {
+        const { default: Component } = await import("../pages/Install-git.page");
+        return { Component };
+      },
     },
     {
       path: setupGitPath.getConfigureGitPath(),
-      Component: ConfigGitPage,
+      lazy: async () => {
+        const { default: Component } = await import("../pages/Config-git.page");
+        return { Component };
+      },
     },
   ],
 };

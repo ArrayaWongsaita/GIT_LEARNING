@@ -1,6 +1,10 @@
 import { redirect, type RouteObject } from "react-router";
 import { introductionPath } from "../constants/introduction.path";
-import WhatIsVersionControlPage from "../pages/WhatIsVersionControl.page";
+
+const loadWhatIsVersionControlPage = async () => {
+  const { default: Component } = await import("../pages/WhatIsVersionControl.page");
+  return { Component };
+};
 
 export const introductionRoutes: RouteObject = {
   path: introductionPath.base.replace("/", ""),
@@ -11,19 +15,19 @@ export const introductionRoutes: RouteObject = {
     },
     {
       path: introductionPath.whatIsGit,
-      Component: WhatIsVersionControlPage,
+      lazy: loadWhatIsVersionControlPage,
     },
     {
       path: introductionPath.whatIsVersionControl,
-      Component: WhatIsVersionControlPage,
+      lazy: loadWhatIsVersionControlPage,
     },
     {
       path: introductionPath.localVsRemote,
-      Component: WhatIsVersionControlPage,
+      lazy: loadWhatIsVersionControlPage,
     },
     {
       path: introductionPath.basicGitTerms,
-      Component: WhatIsVersionControlPage,
+      lazy: loadWhatIsVersionControlPage,
     },
   ],
 };

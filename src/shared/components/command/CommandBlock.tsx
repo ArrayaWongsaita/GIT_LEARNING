@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { codeToHtml } from "shiki";
 import { Button } from "@/shared/components/ui/button";
 
 export type CommandCopyStatus = "copied" | "error";
@@ -10,6 +9,17 @@ type CommandBlockProps = {
   onCopy: () => void;
 };
 
+type ShikiModule = typeof import("shiki");
+
+let shikiModulePromise: Promise<ShikiModule> | null = null;
+
+const loadShikiModule = () => {
+  if (!shikiModulePromise) {
+    shikiModulePromise = import("shiki");
+  }
+  return shikiModulePromise;
+};
+
 export function CommandBlock({ command, status, onCopy }: CommandBlockProps) {
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
 
@@ -18,6 +28,8 @@ export function CommandBlock({ command, status, onCopy }: CommandBlockProps) {
 
     const generateHighlightedHtml = async () => {
       try {
+        const shiki = await loadShikiModule();
+        const codeToHtml = shiki.codeToHtml;
         const html = await codeToHtml(command, {
           lang: "bash",
           themes: {

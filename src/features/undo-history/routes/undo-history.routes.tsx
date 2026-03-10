@@ -1,9 +1,5 @@
 import { Navigate, type RouteObject } from "react-router";
 import { undoHistoryPath } from "../constants/undo-history.path.constant";
-import GitLogPage from "../pages/GitLog.page";
-import GitRestorePage from "../pages/GitRestore.page";
-import GitResetPage from "../pages/GitReset.page";
-import GitReflogPage from "../pages/GitReflog.page";
 
 export const undoHistoryRoutes: RouteObject = {
   path: undoHistoryPath.base.replace("/", ""),
@@ -14,19 +10,31 @@ export const undoHistoryRoutes: RouteObject = {
     },
     {
       path: undoHistoryPath.getGitLogPath(),
-      Component: GitLogPage,
+      lazy: async () => {
+        const { default: Component } = await import("../pages/GitLog.page");
+        return { Component };
+      },
     },
     {
       path: undoHistoryPath.getGitRestorePath(),
-      Component: GitRestorePage,
+      lazy: async () => {
+        const { default: Component } = await import("../pages/GitRestore.page");
+        return { Component };
+      },
     },
     {
       path: undoHistoryPath.getGitResetPath(),
-      Component: GitResetPage,
+      lazy: async () => {
+        const { default: Component } = await import("../pages/GitReset.page");
+        return { Component };
+      },
     },
     {
       path: undoHistoryPath.getGitReflogPath(),
-      Component: GitReflogPage,
+      lazy: async () => {
+        const { default: Component } = await import("../pages/GitReflog.page");
+        return { Component };
+      },
     },
   ],
 };

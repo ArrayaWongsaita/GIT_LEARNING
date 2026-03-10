@@ -1,4 +1,6 @@
 import { PUBLIC_ROUTE } from "@/shared/constants/routes/public.constant";
+import { mergeRebasePath } from "@/features/merge-rebase/constants/merge-rebase.path.constant";
+import { remoteCollaborationPath } from "@/features/remote-collaboration/constants/remote-collaboration.path.constant";
 
 export type GitLessonSlug =
   | "introduction"
@@ -204,11 +206,13 @@ export const GIT_LESSONS: GitLesson[] = [
         anchor: "resolve-conflicts",
         title: "Resolve Conflicts",
         description: "แก้ conflict ทีละไฟล์ ตรวจสอบผลแล้ว commit/continue ให้ครบ",
+        path: mergeRebasePath.getResolveConflictsPath(),
       },
       {
         anchor: "fast-forward-merge",
         title: "Fast-forward Merge",
         description: "รูปแบบ merge ที่ไม่มีจุดแตกแขนงเพิ่มเมื่อประวัติต่อเนื่องกัน",
+        path: mergeRebasePath.getGitMergePath(),
       },
     ],
   },
@@ -247,31 +251,38 @@ export const GIT_LESSONS: GitLesson[] = [
   {
     slug: "remote-collaboration",
     title: "Remote Collaboration",
-    path: PUBLIC_ROUTE.LESSON.REMOTE_COLLABORATION,
-    summary: "เชื่อม remote และทำงานร่วมทีมด้วย pull/push และ PR flow",
+    path: remoteCollaborationPath.getGitClonePath(),
+    summary:
+      "ทำงานกับ remote repository ตั้งแต่ clone โปรเจกต์ ดึงอัปเดตล่าสุด push งาน และปิดงานผ่าน Pull Request",
     subtopics: [
       {
-        anchor: "git-remote",
-        title: "git remote",
-        description: "เพิ่มและตรวจสอบ remote repository ที่โปรเจกต์เชื่อมอยู่",
-        commands: ["git remote -v", "git remote add origin <repository-url>"],
+        anchor: "git-clone",
+        title: "git clone",
+        description: "คัดลอก repository จาก remote ลงเครื่องเพื่อเริ่มทำงานในโปรเจกต์",
+        commands: ["git clone <repository-url>"],
+        path: remoteCollaborationPath.getGitClonePath(),
       },
       {
         anchor: "git-pull",
         title: "git pull",
-        description: "ดึงโค้ดล่าสุดจาก remote มารวมกับ branch ปัจจุบัน",
+        description: "ดึง commit ล่าสุดจาก remote แล้วรวมเข้ากับ branch ปัจจุบันบนเครื่องเรา",
         commands: ["git pull origin main"],
+        path: remoteCollaborationPath.getGitPullPath(),
       },
       {
         anchor: "git-push",
         title: "git push",
-        description: "ส่ง commit จากเครื่องเราไปยัง remote repository",
-        commands: ["git push origin main", "git push -u origin feature/login"],
+        description: "ส่ง commit จาก local branch ขึ้น remote branch พร้อมเช็กสถานะก่อนและหลัง push",
+        commands: ["git push origin main"],
+        path: remoteCollaborationPath.getGitPushPath(),
       },
       {
         anchor: "pull-request-flow",
         title: "Pull Request Flow",
-        description: "เปิด PR, รับรีวิว, แก้ไขตามคอมเมนต์ และ merge เข้าสาขาหลัก",
+        description:
+          "ฝึก workflow บน GitHub ตั้งแต่เปิด Pull Request รับรีวิว แก้ไข และ merge ให้ปลอดภัย",
+        commands: ["git push -u origin feature/my-change"],
+        path: remoteCollaborationPath.getPullRequestFlowPath(),
       },
     ],
   },

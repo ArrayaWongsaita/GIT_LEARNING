@@ -21,6 +21,174 @@ export type GitBranchLabStep = {
   notes?: string[];
 };
 
+export type GitBranchSimulatorBranch = {
+  name: string;
+  shortHash: string;
+  lastCommit: string;
+  merged: boolean;
+  upstream?: string;
+  ahead: number;
+  behind: number;
+};
+
+export type GitBranchSimulatorCommit = {
+  id: string;
+  shortHash: string;
+  message: string;
+  lane: 0 | 1;
+  parentId?: string;
+  author: string;
+  dateLabel: string;
+};
+
+export const GIT_BRANCH_SIM_INITIAL_CURRENT_BRANCH = "main";
+
+export const GIT_BRANCH_SIM_INITIAL_BRANCHES: GitBranchSimulatorBranch[] = [
+  {
+    name: "main",
+    shortHash: "f13de33",
+    lastCommit: "merge: feature/login into main",
+    merged: true,
+    upstream: "origin/main",
+    ahead: 0,
+    behind: 0,
+  },
+  {
+    name: "feature/login",
+    shortHash: "d42bc11",
+    lastCommit: "feat(login): add login screen",
+    merged: true,
+    upstream: "origin/feature/login",
+    ahead: 0,
+    behind: 0,
+  },
+  {
+    name: "feature/profile",
+    shortHash: "b7e9f1a",
+    lastCommit: "feat(profile): add avatar crop",
+    merged: false,
+    upstream: "origin/feature/profile",
+    ahead: 2,
+    behind: 0,
+  },
+];
+
+export const GIT_BRANCH_SIM_REMOTE_BRANCHES = [
+  "remotes/origin/main",
+  "remotes/origin/feature/login",
+  "remotes/origin/feature/profile",
+];
+
+export const GIT_BRANCH_SIM_INITIAL_COMMITS: GitBranchSimulatorCommit[] = [
+  {
+    id: "c12",
+    shortHash: "b7e9f1a",
+    message: "feat(profile): add avatar crop",
+    lane: 1,
+    parentId: "c11",
+    author: "Maira Wenzel",
+    dateLabel: "3 Sep 2019 23:27",
+  },
+  {
+    id: "c11",
+    shortHash: "a3d4c9e",
+    message: "feat(profile): scaffold profile editor",
+    lane: 1,
+    parentId: "c10",
+    author: "Steve Smith",
+    dateLabel: "3 Sep 2019 21:37",
+  },
+  {
+    id: "c10",
+    shortHash: "f13de33",
+    message: "merge: feature/login into main",
+    lane: 0,
+    parentId: "c9",
+    author: "Tom Pratt",
+    dateLabel: "3 Sep 2019 20:47",
+  },
+  {
+    id: "c9",
+    shortHash: "e71ac20",
+    message: "feat(login): add oauth callback",
+    lane: 0,
+    parentId: "c8",
+    author: "Youssef Victor",
+    dateLabel: "3 Sep 2019 20:27",
+  },
+  {
+    id: "c8",
+    shortHash: "d42bc11",
+    message: "feat(login): add login screen",
+    lane: 0,
+    parentId: "c7",
+    author: "Maira Wenzel",
+    dateLabel: "3 Sep 2019 20:04",
+  },
+  {
+    id: "c7",
+    shortHash: "c91fd20",
+    message: "fix(auth): validate refresh token",
+    lane: 0,
+    parentId: "c6",
+    author: "Ron Petrusha",
+    dateLabel: "3 Sep 2019 19:27",
+  },
+  {
+    id: "c6",
+    shortHash: "b84ad55",
+    message: "chore: setup lint and formatter",
+    lane: 0,
+    parentId: "c5",
+    author: "Youssef Victor",
+    dateLabel: "3 Sep 2019 19:24",
+  },
+  {
+    id: "c5",
+    shortHash: "a7e61c0",
+    message: "docs: add branching workflow",
+    lane: 0,
+    parentId: "c4",
+    author: "Maira Wenzel",
+    dateLabel: "3 Sep 2019 19:19",
+  },
+  {
+    id: "c4",
+    shortHash: "98bd321",
+    message: "refactor: split auth service",
+    lane: 0,
+    parentId: "c3",
+    author: "Steve Smith",
+    dateLabel: "3 Sep 2019 19:14",
+  },
+  {
+    id: "c3",
+    shortHash: "82ff110",
+    message: "build: add CI cache layer",
+    lane: 0,
+    parentId: "c2",
+    author: "Tom Pratt",
+    dateLabel: "3 Sep 2019 19:11",
+  },
+  {
+    id: "c2",
+    shortHash: "72cd905",
+    message: "feat: bootstrap app shell",
+    lane: 0,
+    parentId: "c1",
+    author: "Mauricio de los Santos",
+    dateLabel: "3 Sep 2019 19:09",
+  },
+  {
+    id: "c1",
+    shortHash: "8c1aa2c",
+    message: "chore: project scaffold",
+    lane: 0,
+    author: "Terry Kim",
+    dateLabel: "3 Sep 2019 19:04",
+  },
+];
+
 export const GIT_BRANCH_COMMAND_DOCS: GitBranchCommandDoc[] = [
   {
     id: "list-local-branches",
@@ -75,14 +243,6 @@ export const GIT_BRANCH_COMMAND_DOCS: GitBranchCommandDoc[] = [
     notes: [
       "ก่อนใช้ -D ควรเช็กประวัติด้วย git log หรือสำรองงานก่อนเสมอ",
     ],
-  },
-  {
-    id: "switch-branch",
-    title: "สลับไปทำงานบน branch อื่น",
-    purpose: "ย้าย context การทำงานไป branch ที่ต้องการ",
-    command: "git switch <branch-name>",
-    description:
-      "สลับ branch เช่น git switch feature/login เพื่อเข้าไปทำงานใน branch นั้น",
   },
 ];
 

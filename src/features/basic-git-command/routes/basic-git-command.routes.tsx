@@ -1,10 +1,5 @@
 import { Navigate, type RouteObject } from "react-router";
 import { basicGitCommandPath } from "../constants/basic-git-command.path.constant";
-import GitInitPage from "../pages/GitInit.page";
-import GitAddPage from "../pages/GitAdd.page";
-import GitCommitPage from "../pages/GitCommit.page";
-import CommitMessageRulesPage from "../pages/CommitMessageRules.page";
-import GitAddCommitPage from "../pages/GitAddCommit.page";
 
 export const basicGitCommandRoutes: RouteObject = {
   path: basicGitCommandPath.base.replace("/", ""),
@@ -15,23 +10,38 @@ export const basicGitCommandRoutes: RouteObject = {
     },
     {
       path: basicGitCommandPath.getGitInitPath(),
-      Component: GitInitPage,
+      lazy: async () => {
+        const { default: Component } = await import("../pages/GitInit.page");
+        return { Component };
+      },
     },
     {
       path: basicGitCommandPath.getGitAddPath(),
-      Component: GitAddPage,
+      lazy: async () => {
+        const { default: Component } = await import("../pages/GitAdd.page");
+        return { Component };
+      },
     },
     {
       path: basicGitCommandPath.getGitCommitPath(),
-      Component: GitCommitPage,
+      lazy: async () => {
+        const { default: Component } = await import("../pages/GitCommit.page");
+        return { Component };
+      },
     },
     {
       path: basicGitCommandPath.getCommitMessageRulesPath(),
-      Component: CommitMessageRulesPage,
+      lazy: async () => {
+        const { default: Component } = await import("../pages/CommitMessageRules.page");
+        return { Component };
+      },
     },
     {
       path: basicGitCommandPath.getGitAddCommitPath(),
-      Component: GitAddCommitPage,
+      lazy: async () => {
+        const { default: Component } = await import("../pages/GitAddCommit.page");
+        return { Component };
+      },
     },
   ],
 };
