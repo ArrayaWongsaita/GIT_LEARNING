@@ -1,12 +1,18 @@
 class RemoteCollaborationPath {
   base = "/remote-collaboration";
   gitClone = "git-clone";
+  gitFetch = "git-fetch";
   gitPull = "git-pull";
   gitPush = "git-push";
   pullRequestFlow = "pull-request-flow";
+  rules = "rules";
 
   getGitClonePath() {
     return `${this.base}/${this.gitClone}`;
+  }
+
+  getGitFetchPath() {
+    return `${this.base}/${this.gitFetch}`;
   }
 
   getGitPullPath() {
@@ -19,6 +25,10 @@ class RemoteCollaborationPath {
 
   getPullRequestFlowPath() {
     return `${this.base}/${this.pullRequestFlow}`;
+  }
+
+  getRulesPath() {
+    return `${this.base}/${this.rules}`;
   }
 }
 

@@ -16,6 +16,13 @@ export const remoteCollaborationRoutes: RouteObject = {
       },
     },
     {
+      path: remoteCollaborationPath.getGitFetchPath(),
+      lazy: async () => {
+        const { default: Component } = await import("../pages/GitFetch.page");
+        return { Component };
+      },
+    },
+    {
       path: remoteCollaborationPath.getGitPullPath(),
       lazy: async () => {
         const { default: Component } = await import("../pages/GitPull.page");
@@ -33,6 +40,13 @@ export const remoteCollaborationRoutes: RouteObject = {
       path: remoteCollaborationPath.getPullRequestFlowPath(),
       lazy: async () => {
         const { default: Component } = await import("../pages/PullRequestFlow.page");
+        return { Component };
+      },
+    },
+    {
+      path: remoteCollaborationPath.getRulesPath(),
+      lazy: async () => {
+        const { default: Component } = await import("../pages/GitHubRules.page");
         return { Component };
       },
     },

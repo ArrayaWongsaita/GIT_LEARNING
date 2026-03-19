@@ -9,6 +9,9 @@ import { SetupGuideHeader } from "@/shared/components/setup-guide/SetupGuideHead
 import {
   PULL_REQUEST_FLOW_COMMAND_DOCS,
   PULL_REQUEST_FLOW_LAB_STEPS,
+  PULL_REQUEST_REVIEW_MESSAGE_EXAMPLES,
+  PULL_REQUEST_REVIEW_MESSAGE_STEPS,
+  PULL_REQUEST_REVIEW_MESSAGE_TEMPLATES,
   PULL_REQUEST_FLOW_SAFETY_NOTES,
   PULL_REQUEST_FLOW_STEPS,
   type PullRequestFlowScenarioName,
@@ -133,6 +136,10 @@ const HAPPY_PATH_DONE_BOARD: PullRequestFlowBoardState = {
 };
 
 const WAIT_STEP_MS = 560;
+const GITHUB_PULL_REQUEST_IMAGE = {
+  src: "/images/git/github/pull-requests-overview.png",
+  alt: "ภาพหน้าจอ Pull requests บน GitHub",
+} as const;
 
 function wait(ms: number) {
   return new Promise<void>((resolve) => {
@@ -147,7 +154,7 @@ export default function PullRequestFlowPage() {
   const [boardState, setBoardState] =
     useState<PullRequestFlowBoardState>(BASELINE_BOARD);
   const [currentStep, setCurrentStep] = useState<string>(
-    "พร้อมเริ่มจำลอง Pull Request Flow",
+    "พร้อมเริ่มจำลอง GitHub Pull requests",
   );
   const [scenario, setScenario] = useState<PullRequestFlowScenarioName | null>(
     null,
@@ -232,7 +239,7 @@ export default function PullRequestFlowPage() {
     setScenario(null);
     setIsAnimating(false);
     setBoardState(BASELINE_BOARD);
-    setCurrentStep("พร้อมเริ่มจำลอง Pull Request Flow");
+    setCurrentStep("พร้อมเริ่มจำลอง GitHub Pull requests");
   };
 
   const playScenario = async (name: PullRequestFlowScenarioName) => {
@@ -389,10 +396,43 @@ export default function PullRequestFlowPage() {
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <SetupGuideHeader
-        badge="Remote Collaboration"
-        title="Pull Request Flow"
-        description="เข้าใจ workflow ของ Pull Request บน GitHub ผ่านภาพเคลื่อนไหวทั้ง happy path และกรณี changes requested พร้อมฝึกขั้นตอนจริงใน mini lab"
+        badge="GitHub"
+        title="Pull requests"
+        description="เข้าใจ workflow ของ Pull requests บน GitHub ตั้งแต่เปิด PR รับรีวิว แก้ไข และ merge อย่างเป็นระบบ พร้อมมีช่องสำหรับใส่ภาพประกอบของคุณภายหลัง"
       />
+
+      <section className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h2 className="text-xl font-black tracking-tight text-foreground">
+              Image Placeholder
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+              ผมใส่แท็ก <code>&lt;img /&gt;</code> พร้อม <code>src</code> placeholder
+              ไว้ให้แล้ว คุณสามารถแทน path นี้ด้วยรูปของคุณภายหลังได้ทันที
+            </p>
+          </div>
+          <code className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+            {GITHUB_PULL_REQUEST_IMAGE.src}
+          </code>
+        </div>
+
+        <figure className="mt-4 overflow-hidden rounded-xl border border-dashed border-primary/35 bg-muted/20">
+          <img
+            src={GITHUB_PULL_REQUEST_IMAGE.src}
+            alt={GITHUB_PULL_REQUEST_IMAGE.alt}
+            className="h-auto w-full"
+            loading="lazy"
+            onError={(event) => {
+              event.currentTarget.style.display = "none";
+            }}
+          />
+          <figcaption className="border-t border-dashed border-primary/25 bg-background/80 p-4 text-sm leading-6 text-muted-foreground">
+            วางภาพหน้าจอ Pull requests ของคุณใน <code>{GITHUB_PULL_REQUEST_IMAGE.src}</code>
+            หรือแก้ค่า <code>src</code> ในแท็ก <code>&lt;img /&gt;</code> นี้ได้เลย
+          </figcaption>
+        </figure>
+      </section>
 
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
         <h2 className="text-xl font-black tracking-tight text-foreground">
@@ -438,10 +478,96 @@ export default function PullRequestFlowPage() {
 
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
         <h2 className="text-xl font-black tracking-tight text-foreground">
+          Writing Reviewer Comments
+        </h2>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+          review message ที่ดีควรสุภาพ ตรงประเด็น และ actionable พอที่เจ้าของ PR อ่านแล้วรู้
+          ว่าควรเช็กอะไรต่อ แก้อะไร หรืออธิบาย intent ตรงไหนเพิ่ม
+        </p>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {PULL_REQUEST_REVIEW_MESSAGE_STEPS.map((step) => (
+            <article key={step.id} className="rounded-xl border border-border bg-muted/30 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-base font-bold text-foreground">{step.label}</h3>
+                <span className="rounded-md bg-primary/15 px-2 py-1 text-xs font-semibold text-primary">
+                  {step.prompt}
+                </span>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">{step.description}</p>
+            </article>
+          ))}
+        </div>
+
+        <div className="mt-5">
+          <h3 className="text-base font-bold text-foreground">Good vs Bad Examples</h3>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            เลี่ยงคำกว้าง ๆ อย่าง <code>fix this</code>, <code>not good</code>, หรือ{" "}
+            <code>please change</code> แล้วเปลี่ยนเป็นข้อความที่บอก issue และผลกระทบชัดกว่า
+          </p>
+
+          <div className="mt-3 space-y-3">
+            {PULL_REQUEST_REVIEW_MESSAGE_EXAMPLES.map((example) => (
+              <article
+                key={example.id}
+                className="rounded-xl border border-border bg-muted/30 p-4"
+              >
+                <h4 className="text-sm font-semibold text-foreground">{example.title}</h4>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  <span className="font-semibold text-foreground">Situation:</span>{" "}
+                  {example.situation}
+                </p>
+
+                <div className="mt-3 grid gap-2 md:grid-cols-2">
+                  <div className="rounded-lg border border-emerald-500/35 bg-emerald-500/10 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+                      Good
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-foreground">{example.good}</p>
+                  </div>
+                  <div className="rounded-lg border border-rose-500/35 bg-rose-500/10 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-rose-700 dark:text-rose-300">
+                      Bad
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-foreground">{example.bad}</p>
+                  </div>
+                </div>
+
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  <span className="font-semibold text-foreground">Why it works:</span>{" "}
+                  {example.whyItWorks}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-5">
+          <h3 className="text-base font-bold text-foreground">Quick Templates</h3>
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
+            {PULL_REQUEST_REVIEW_MESSAGE_TEMPLATES.map((template) => (
+              <article
+                key={template.id}
+                className="rounded-xl border border-border bg-muted/30 p-4"
+              >
+                <h4 className="text-sm font-semibold text-foreground">{template.title}</h4>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{template.intent}</p>
+                <div className="mt-3 rounded-lg border border-border bg-card px-3 py-3">
+                  <p className="font-mono text-xs leading-6 text-foreground">{template.template}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
+        <h2 className="text-xl font-black tracking-tight text-foreground">
           Pull Request Visual Flow
         </h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          ดูการทำงานของ PR ตั้งแต่เปิด review ไปจน merge ในสองกรณี: happy path และ changes requested
+          ดูการทำงานของ Pull requests ตั้งแต่เปิด review ไปจน merge ในสองกรณี: happy path และ
+          changes requested
         </p>
 
         <div className="mt-4 flex flex-wrap gap-2">
@@ -521,7 +647,8 @@ export default function PullRequestFlowPage() {
         </ul>
 
         <p className="mt-4 text-sm leading-6 text-muted-foreground">
-          ลองฝึก flow จริงตั้งแต่ push branch ไปจน merge PR ให้ชินขั้นตอนการทำงานเป็นทีมบน GitHub
+          ลองฝึก flow จริงตั้งแต่ push branch ไปจน merge PR ให้ชินขั้นตอนการทำงานร่วมกันบน
+          GitHub
         </p>
 
         <ol className="mt-4 space-y-4">

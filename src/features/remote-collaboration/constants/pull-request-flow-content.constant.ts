@@ -21,6 +21,29 @@ export type PullRequestFlowLabStep = {
   notes?: string[];
 };
 
+export type PullRequestReviewMessageStep = {
+  id: string;
+  label: string;
+  prompt: string;
+  description: string;
+};
+
+export type PullRequestReviewMessageExample = {
+  id: string;
+  title: string;
+  situation: string;
+  good: string;
+  bad: string;
+  whyItWorks: string;
+};
+
+export type PullRequestReviewMessageTemplate = {
+  id: string;
+  title: string;
+  intent: string;
+  template: string;
+};
+
 export type PullRequestFlowScenarioName = "happy-path" | "changes-requested";
 
 export const PULL_REQUEST_FLOW_COMMAND_DOCS: PullRequestFlowCommandDoc[] = [
@@ -66,6 +89,93 @@ export const PULL_REQUEST_FLOW_SAFETY_NOTES: string[] = [
   "ตอบ review comments ทีละข้อ และปิด conversation เมื่อแก้ครบแล้ว",
   "หลีกเลี่ยง merge PR ที่ยังมี unresolved conversation หรือยังไม่ผ่าน approval ตาม policy ทีม",
 ];
+
+export const PULL_REQUEST_REVIEW_MESSAGE_STEPS: PullRequestReviewMessageStep[] = [
+  {
+    id: "review-context",
+    label: "Context",
+    prompt: "ระบุจุดที่กำลังพูดถึง",
+    description:
+      "บอกไฟล์, ฟังก์ชัน, หรือ behavior ให้ชัดก่อน เพื่อให้เจ้าของ PR เข้าใจว่าคอมเมนต์นี้อ้างถึงส่วนไหน",
+  },
+  {
+    id: "review-issue",
+    label: "Issue",
+    prompt: "อธิบายความเสี่ยงหรือข้อสังเกต",
+    description:
+      "เขียนให้เห็นปัญหาจริง เช่น null case, duplicated logic, naming ที่ทำให้สับสน หรือ test coverage ที่ยังขาด",
+  },
+  {
+    id: "review-impact",
+    label: "Impact",
+    prompt: "บอกผลกระทบเมื่อจำเป็น",
+    description:
+      "ถ้า issue นี้มีผลต่อผู้ใช้, maintainability, หรือ production risk ควรบอกเหตุผลสั้น ๆ ว่าทำไมถึงควรแก้",
+  },
+  {
+    id: "review-suggestion",
+    label: "Suggestion",
+    prompt: "ปิดท้ายด้วยแนวทางที่ actionable",
+    description:
+      "เสนอทางเลือกหรือคำถามนำ เช่น ลอง guard case นี้, เพิ่ม test ตรงนี้, หรือ clarify intent ของ logic ให้ reviewer ติดตามต่อได้ง่าย",
+  },
+];
+
+export const PULL_REQUEST_REVIEW_MESSAGE_EXAMPLES: PullRequestReviewMessageExample[] =
+  [
+    {
+      id: "review-example-null",
+      title: "ถามให้เห็น risk ชัด",
+      situation: "เจอ code path ที่ response อาจเป็น null แต่ถูกใช้ต่อทันที",
+      good: "ตรงนี้มีโอกาส null ได้ไหม ถ้า API ตอบกลับไม่ครบอาจทำให้ map ต่อแล้วพัง ลอง guard ก่อนใช้ค่าได้ไหม",
+      bad: "fix this null case",
+      whyItWorks:
+        "เวอร์ชันที่ดีสุภาพ ชี้จุดเสี่ยง และบอกผลกระทบพร้อมแนวทางแก้ ทำให้เจ้าของ PR ลงมือแก้ต่อได้ทันที",
+    },
+    {
+      id: "review-example-actionable",
+      title: "ชี้ประเด็นพร้อมข้อเสนอแนะ",
+      situation: "logic นี้ถ้า fail ผู้ใช้อาจกดซ้ำและสร้าง request ซ้อน",
+      good: "ถ้าเคสนี้ fail ผู้ใช้อาจกดซ้ำได้ ลอง guard เพิ่มตรงนี้หรือ disable ปุ่มระหว่างรอ response ดีไหม",
+      bad: "not good",
+      whyItWorks:
+        "ข้อความที่ดีไม่ได้หยุดแค่บอกว่ามีปัญหา แต่ช่วยชี้ direction ให้เห็นว่าควรทดลองแก้ตรงไหน",
+    },
+    {
+      id: "review-example-question",
+      title: "ถามเพื่อให้ clarify intent",
+      situation: "ชื่อฟังก์ชันหรือ behavior ไม่ตรงกับสิ่งที่ code ทำจริง",
+      good: "ชื่อฟังก์ชันนี้ดูเหมือนแค่ validate แต่ด้านในมี side effect ด้วย ตรงนี้อยากคง behavior แบบนี้ไว้หรือแยก responsibility ดีไหม",
+      bad: "please change the naming",
+      whyItWorks:
+        "เวอร์ชันที่ดีเปิดพื้นที่ให้คุยเรื่อง intent โดยไม่สั่งกว้าง ๆ และช่วยให้การตัดสินใจใน PR โปร่งใสขึ้น",
+    },
+  ];
+
+export const PULL_REQUEST_REVIEW_MESSAGE_TEMPLATES: PullRequestReviewMessageTemplate[] =
+  [
+    {
+      id: "review-template-question",
+      title: "ขอข้อมูลเพิ่ม",
+      intent: "ใช้เมื่อยังไม่แน่ใจว่าพฤติกรรมนี้ตั้งใจหรือหลุดมา",
+      template:
+        "ตรงนี้ตั้งใจให้ {behavior} เกิดขึ้นในกรณี {case} ใช่ไหม ถ้าไม่ อาจต้อง {suggestion}",
+    },
+    {
+      id: "review-template-risk",
+      title: "ชี้ bug หรือ risk",
+      intent: "ใช้เมื่อเห็นผลกระทบค่อนข้างชัดและควรแก้ก่อน merge",
+      template:
+        "จุดนี้มีความเสี่ยงเรื่อง {risk} เพราะ {reason} ลอง {suggestion} ก่อน merge จะปลอดภัยขึ้น",
+    },
+    {
+      id: "review-template-suggestion",
+      title: "เสนอแนวแก้แบบ actionable",
+      intent: "ใช้เมื่ออยากช่วยเสนอทางออกมากกว่าชี้ปัญหาอย่างเดียว",
+      template:
+        "เพื่อให้ {goal} ชัดขึ้น ลอง {suggestion} ตรง {location} ได้ไหม น่าจะช่วยลด {impact}",
+    },
+  ];
 
 export const PULL_REQUEST_FLOW_LAB_STEPS: PullRequestFlowLabStep[] = [
   {

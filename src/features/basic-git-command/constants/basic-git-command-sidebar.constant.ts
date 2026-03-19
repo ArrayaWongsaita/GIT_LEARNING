@@ -7,10 +7,6 @@ export const BASIC_GIT_COMMAND_SIDE_BAR_DATA: SidebarData = {
   icon: GitCommitHorizontal,
   children: [
     {
-      title: "git init",
-      path: basicGitCommandPath.getGitInitPath(),
-    },
-    {
       title: "git add",
       path: basicGitCommandPath.getGitAddPath(),
     },

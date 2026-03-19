@@ -12,13 +12,25 @@ export type GitBranchLabCommand = {
   description: string;
 };
 
-export type GitBranchLabStep = {
+export type GitBranchLabDifficulty = "Starter" | "Practice" | "Challenge";
+
+export type GitBranchLab = {
   id: string;
   title: string;
+  summary: string;
+  difficulty: GitBranchLabDifficulty;
+  focus: string;
   task: string;
   commands: GitBranchLabCommand[];
   checkpoint: string;
   notes?: string[];
+};
+
+export type GitBranchLabSection = {
+  id: string;
+  title: string;
+  summary: string;
+  labs: GitBranchLab[];
 };
 
 export type GitBranchSimulatorBranch = {
@@ -254,156 +266,317 @@ export const GIT_BRANCH_SAFETY_NOTES: string[] = [
   "ถ้าไม่มั่นใจ ให้ตรวจกราฟก่อนด้วย `git log --oneline --graph --decorate -n 10`",
 ];
 
-export const GIT_BRANCH_LAB_STEPS: GitBranchLabStep[] = [
+export const GIT_BRANCH_LAB_SECTIONS: GitBranchLabSection[] = [
   {
-    id: "lab-step-1",
-    title: "Step 1: สร้างโฟลเดอร์ทดลองและ commit แรก",
-    task: "เตรียม repository สำหรับทดลอง branching",
-    commands: [
+    id: "foundation-listing-and-creation",
+    title: "Foundation Listing & Creation",
+    summary:
+      "เริ่มจากสร้าง sandbox repo, สร้าง branch หลายตัว, แล้วอ่านผลลัพธ์ของ git branch แต่ละแบบให้ขาด",
+    labs: [
       {
-        command: "mkdir git-branch-lab",
-        description: "สร้างโฟลเดอร์ใหม่สำหรับทดลอง",
+        id: "foundation-bootstrap",
+        title: "Lab 1: Bootstrap sandbox repo และสร้าง first commit",
+        summary: "เตรียม repository ฐานสำหรับฝึก create/list/delete branch",
+        difficulty: "Starter",
+        focus: "Repo setup",
+        task:
+          "สร้างโฟลเดอร์ทดลอง, init repo, สร้าง README แล้ว commit แรกเพื่อใช้เป็นจุดตั้งต้นของทุก branch",
+        commands: [
+          {
+            command: "mkdir git-branch-lab",
+            description: "สร้างโฟลเดอร์แยกสำหรับทำ lab โดยไม่ปนกับโปรเจกต์อื่น",
+          },
+          {
+            command: "cd git-branch-lab",
+            description: "เข้าไปทำงานในโฟลเดอร์ทดลอง",
+          },
+          {
+            command: "git init -b main",
+            description: "เริ่ม repository และตั้ง branch เริ่มต้นเป็น main",
+          },
+          {
+            command: "echo \"# Git Branch Lab\" > README.md",
+            description: "สร้างไฟล์เริ่มต้นเพื่อให้มี content สำหรับ commit แรก",
+          },
+          {
+            command: "git add README.md",
+            description: "stage README.md เข้า index",
+          },
+          {
+            command: 'git commit -m "chore: initial branch lab commit"',
+            description: "สร้าง commit ฐานที่ branch อื่นจะอ้างจากจุดเดียวกัน",
+          },
+          {
+            command: "git branch",
+            description: "ตรวจว่า repository เริ่มต้นอยู่ที่ main",
+          },
+        ],
+        checkpoint: "ต้องเห็น `* main` ในผลลัพธ์ของ git branch",
       },
       {
-        command: "cd git-branch-lab",
-        description: "เข้าโฟลเดอร์ทดลอง",
+        id: "foundation-create-login",
+        title: "Lab 2: สร้าง feature/login และดู local branches",
+        summary: "เริ่มแยกงานออกจาก main ด้วย branch ฟีเจอร์แรก",
+        difficulty: "Starter",
+        focus: "Create branch",
+        task:
+          "สร้าง branch สำหรับงาน login แล้วดูให้ชัดว่า branch ใหม่ถูกเพิ่มเข้า local branch list แล้ว",
+        commands: [
+          {
+            command: "git branch feature/login",
+            description: "สร้าง branch feature/login จาก commit ปัจจุบันบน main",
+          },
+          {
+            command: "git branch",
+            description: "ตรวจว่า feature/login ถูกเพิ่มเข้ามาโดยที่เรายังอยู่บน main",
+          },
+        ],
+        checkpoint: "ต้องเห็นทั้ง main และ feature/login ในรายการ branch",
       },
       {
-        command: "git init -b main",
-        description: "เริ่ม repository ใหม่และตั้ง initial branch เป็น main",
+        id: "foundation-create-profile",
+        title: "Lab 3: สร้าง feature/profile และเทียบ git branch กับ git branch -a",
+        summary: "แยก branch เพิ่มอีกเส้นและสังเกตความต่างของการ list branches",
+        difficulty: "Starter",
+        focus: "Branch listing",
+        task:
+          "สร้าง feature/profile เพิ่ม แล้วเทียบ output ของ git branch กับ git branch -a ใน sandbox ที่ยังไม่มี remote",
+        commands: [
+          {
+            command: "git branch feature/profile",
+            description: "สร้าง branch feature/profile เพิ่มอีกเส้นจาก main",
+          },
+          {
+            command: "git branch",
+            description: "ดูเฉพาะ local branches ที่มีในเครื่อง",
+          },
+          {
+            command: "git branch -a",
+            description: "ดูทุก branch รวมทั้ง remote-tracking branches ถ้ามี",
+          },
+        ],
+        checkpoint:
+          "ต้องเห็น feature/login และ feature/profile ใน local list และใน sandbox นี้ `git branch -a` จะยังแสดงเท่ากับ local เพราะยังไม่มี remote",
+        notes: [
+          "จุดสำคัญของ lab นี้คือเข้าใจว่า `-a` จะเริ่มมีความหมายมากขึ้นเมื่อ repo มี remote configured",
+        ],
       },
       {
-        command: "echo \"# Git Branch Lab\" > README.md",
-        description: "สร้างไฟล์เริ่มต้น",
-      },
-      {
-        command: "git add README.md",
-        description: "stage ไฟล์ README",
-      },
-      {
-        command: "git commit -m \"chore: initial commit\"",
-        description: "สร้าง commit แรกเพื่อใช้เป็นฐานของ branch ต่างๆ",
+        id: "foundation-profile-inspection",
+        title: "Lab 4: ขยับ feature/profile แล้วอ่าน pointer ด้วย git branch -vv",
+        summary: "สร้างความต่างระหว่าง branch pointers ก่อนจะเริ่มลบ branch อย่างปลอดภัย",
+        difficulty: "Practice",
+        focus: "Pointer inspection",
+        task:
+          "สลับไป feature/profile, สร้าง draft commit แล้วใช้ git branch -vv เพื่อดูว่า branch ไหนชี้ commit อะไรอยู่",
+        commands: [
+          {
+            command: "git switch feature/profile",
+            description: "สลับไป branch feature/profile เพื่อสร้างงานที่ยังไม่ merge",
+          },
+          {
+            command: "echo \"console.log('profile draft');\" > profile.ts",
+            description: "สร้างไฟล์ตัวอย่างให้ feature/profile มี commit ของตัวเอง",
+          },
+          {
+            command: "git add profile.ts",
+            description: "stage profile.ts ก่อน commit",
+          },
+          {
+            command: 'git commit -m "feat(profile): add draft profile flow"',
+            description: "สร้าง commit ใหม่บน feature/profile",
+          },
+          {
+            command: "git branch -vv",
+            description: "ตรวจว่า feature/profile ชี้ไป commit ใหม่ ส่วน main และ feature/login ยังอยู่ commit เดิม",
+          },
+        ],
+        checkpoint:
+          "ใน `git branch -vv` ต้องเห็น feature/profile ชี้ไป commit ใหม่ของตัวเอง และยังไม่มี upstream ใน sandbox นี้",
       },
     ],
-    checkpoint: "รัน git branch แล้วต้องเห็น * main",
   },
   {
-    id: "lab-step-2",
-    title: "Step 2: สร้าง branch ฟีเจอร์แรก",
-    task: "แยกงาน login ออกไปอีก branch",
-    commands: [
+    id: "working-lifecycle",
+    title: "Working Lifecycle",
+    summary:
+      "ฝึก lifecycle ที่เจอบ่อยจริง: สลับไปทำงานบน branch, merge กลับ main, ลบ branch ที่ merge แล้ว และทดสอบ safe delete กับ branch ที่ยังไม่ merge",
+    labs: [
       {
-        command: "git branch feature/login",
-        description: "สร้าง branch feature/login จาก main ปัจจุบัน",
+        id: "lifecycle-login-work",
+        title: "Lab 5: สลับไป feature/login แล้วสร้างงานฟีเจอร์",
+        summary: "ให้ feature/login มี commit ของตัวเองเพื่อใช้ใน merge flow จริง",
+        difficulty: "Practice",
+        focus: "Feature branch work",
+        task:
+          "สลับไป feature/login, เพิ่มไฟล์ใหม่, commit งาน แล้วตรวจด้วย `git branch -vv` ว่า branch นี้ขยับแล้ว",
+        commands: [
+          {
+            command: "git switch feature/login",
+            description: "สลับจาก feature/profile ไปยัง feature/login",
+          },
+          {
+            command: "echo \"console.log('login flow');\" > login.ts",
+            description: "สร้างไฟล์ตัวอย่างสำหรับงาน login",
+          },
+          {
+            command: "git add login.ts",
+            description: "stage งานของ login feature",
+          },
+          {
+            command: 'git commit -m "feat(login): add login flow"',
+            description: "commit งานบน feature/login",
+          },
+          {
+            command: "git branch -vv",
+            description: "ตรวจว่า feature/login มี commit ใหม่ของตัวเองแล้ว",
+          },
+        ],
+        checkpoint:
+          "ต้องเห็น feature/login ชี้ไป commit `feat(login): add login flow` ใน `git branch -vv`",
       },
       {
-        command: "git branch",
-        description: "ตรวจว่ามี branch ใหม่เพิ่มเข้ามา",
+        id: "lifecycle-merge-login",
+        title: "Lab 6: กลับ main แล้ว merge feature/login",
+        summary: "รวมงานที่เสร็จแล้วกลับเข้า branch หลักก่อนลบ branch",
+        difficulty: "Practice",
+        focus: "Merge verification",
+        task:
+          "กลับไป main, merge feature/login แล้วตรวจว่า main ขยับตาม commit ของ login เรียบร้อย",
+        commands: [
+          {
+            command: "git switch main",
+            description: "กลับมาที่ branch หลักก่อน merge",
+          },
+          {
+            command: "git merge feature/login",
+            description: "รวมงานจาก feature/login เข้า main",
+          },
+          {
+            command: "git branch -vv",
+            description: "ตรวจว่า main ขยับแล้ว และ feature/login อยู่ในสถานะที่พร้อมลบ",
+          },
+        ],
+        checkpoint:
+          "ต้องเห็น main อ้างถึงงาน login แล้ว และ feature/login พร้อมสำหรับ safe delete",
+      },
+      {
+        id: "lifecycle-delete-merged",
+        title: "Lab 7: ลบ feature/login แบบปลอดภัยด้วย -d",
+        summary: "ลบเฉพาะ branch ที่ merge แล้วเพื่อลดความเสี่ยงทำงานหาย",
+        difficulty: "Practice",
+        focus: "Safe delete",
+        task:
+          "ลบ feature/login ด้วย `git branch -d` แล้วตรวจว่ารายการ branch ถูกลดลงตามคาด",
+        commands: [
+          {
+            command: "git branch -d feature/login",
+            description: "ลบ branch ที่ merge เข้า main แล้ว",
+          },
+          {
+            command: "git branch",
+            description: "ตรวจว่า feature/login หายไปจาก local branch list",
+          },
+        ],
+        checkpoint: "ต้องไม่เห็น feature/login ในผลลัพธ์ของ git branch",
+      },
+      {
+        id: "lifecycle-refuse-unmerged",
+        title: "Lab 8: ลองลบ feature/profile แบบปลอดภัยแล้วดูการปฏิเสธ",
+        summary: "เรียนรู้ว่าทำไม `git branch -d` ถึงช่วยกันพลาดเวลายังไม่ merge",
+        difficulty: "Practice",
+        focus: "Deletion guardrail",
+        task:
+          "ลองลบ feature/profile ด้วย `git branch -d` ทั้งที่ยังมี commit ที่ไม่ merge เพื่อดูข้อความเตือนจริง",
+        commands: [
+          {
+            command: "git branch -d feature/profile",
+            description: "ลองลบแบบปลอดภัย ซึ่งควรถูกปฏิเสธเพราะ branch นี้ยังไม่ merge",
+          },
+          {
+            command: "git branch",
+            description: "ตรวจว่า feature/profile ยังอยู่หลังคำสั่งถูกปฏิเสธ",
+          },
+        ],
+        checkpoint:
+          "ต้องเห็นว่า feature/profile ยังไม่ถูกลบ และคุณควรเข้าใจว่าคำสั่ง `-d` กันงานหายได้อย่างไร",
       },
     ],
-    checkpoint: "ต้องเห็น main และ feature/login ในรายการ branch",
   },
   {
-    id: "lab-step-3",
-    title: "Step 3: สร้าง branch เพิ่มและดูทั้งหมด",
-    task: "เพิ่มอีก branch เพื่อฝึกจัดการหลาย branch",
-    commands: [
+    id: "risk-review-and-cleanup",
+    title: "Risk Review & Cleanup",
+    summary:
+      "ก่อน force delete ให้ทบทวนสถานะ branch และกราฟ commit ก่อนเสมอ จากนั้นค่อย cleanup sandbox อย่างมีวินัย",
+    labs: [
       {
-        command: "git branch feature/profile",
-        description: "สร้าง branch feature/profile เพิ่ม",
+        id: "review-before-force-delete",
+        title: "Lab 9: Review feature/profile ก่อน force delete",
+        summary: "ใช้ข้อมูลจาก `git branch -vv` และ `git log --graph` ตัดสินใจก่อนลบแบบบังคับ",
+        difficulty: "Challenge",
+        focus: "Risk review",
+        task:
+          "ตรวจให้แน่ใจว่า feature/profile ยังมี commit ที่ไม่ merge อยู่จริง และดูตำแหน่งของ branch บนกราฟประวัติ",
+        commands: [
+          {
+            command: "git branch -vv",
+            description: "ดู pointer ของ branch ทั้งหมดอีกครั้งก่อนตัดสินใจลบแบบ force",
+          },
+          {
+            command: "git log --oneline --graph --decorate -n 10",
+            description: "ดูกราฟ commit เพื่อยืนยันว่า feature/profile ยังแยกจาก main",
+          },
+        ],
+        checkpoint:
+          "คุณต้องยืนยันได้ว่า feature/profile ยังมี commit ของตัวเองที่ไม่ได้อยู่บน main ก่อนใช้ `-D`",
       },
       {
-        command: "git branch -a",
-        description: "ดูรายการ branch ทั้งหมด",
-      },
-    ],
-    checkpoint: "ต้องเห็น feature/login และ feature/profile อยู่ในรายการ",
-  },
-  {
-    id: "lab-step-4",
-    title: "Step 4: สลับ branch และสร้าง commit",
-    task: "เข้าไปทำงานใน feature/login แล้ว commit งาน",
-    commands: [
-      {
-        command: "git switch feature/login",
-        description: "สลับไป branch feature/login",
-      },
-      {
-        command: "echo \"console.log('login flow');\" > login.ts",
-        description: "สร้างไฟล์ตัวอย่างสำหรับฟีเจอร์ login",
-      },
-      {
-        command: "git add login.ts",
-        description: "stage ไฟล์ login.ts",
-      },
-      {
-        command: "git commit -m \"feat(login): add login flow\"",
-        description: "commit งานใน branch ฟีเจอร์",
-      },
-    ],
-    checkpoint: "รัน git branch -vv แล้วต้องเห็น commit ใหม่บน feature/login",
-  },
-  {
-    id: "lab-step-5",
-    title: "Step 5: กลับ main และ merge feature/login",
-    task: "รวมงานจาก branch ฟีเจอร์กลับเข้า main",
-    commands: [
-      {
-        command: "git switch main",
-        description: "กลับมาที่ branch main",
+        id: "force-delete-profile",
+        title: "Lab 10: Force delete feature/profile หลัง review แล้ว",
+        summary: "ลบ branch ที่ยังไม่ merge แบบตั้งใจและมีเหตุผลรองรับ",
+        difficulty: "Challenge",
+        focus: "Force delete",
+        task:
+          "เมื่อทบทวนความเสี่ยงแล้ว ให้ลบ feature/profile ด้วย `git branch -D` และเช็กผลลัพธ์ทันที",
+        commands: [
+          {
+            command: "git branch -D feature/profile",
+            description: "ลบ feature/profile แบบบังคับหลัง review เสร็จแล้ว",
+          },
+          {
+            command: "git branch",
+            description: "ตรวจว่าตอนนี้เหลือเฉพาะ branch ที่ต้องเก็บไว้จริง",
+          },
+        ],
+        checkpoint:
+          "ต้องไม่เห็น feature/profile ใน local branch list หลังใช้ `git branch -D`",
+        notes: [
+          "ถ้ายังไม่มั่นใจว่าจะลบได้จริง ให้ย้อนกลับไปดู Lab 9 อีกครั้งก่อน",
+        ],
       },
       {
-        command: "git merge feature/login",
-        description: "merge งานจาก feature/login เข้า main",
-      },
-      {
-        command: "git branch -vv",
-        description: "ตรวจสถานะ branch หลัง merge",
-      },
-    ],
-    checkpoint: "main ต้องมี commit ของ login แล้ว",
-  },
-  {
-    id: "lab-step-6",
-    title: "Step 6: ลบ branch ที่ merge แล้ว",
-    task: "ลบ feature/login ด้วยโหมดปลอดภัย",
-    commands: [
-      {
-        command: "git branch -d feature/login",
-        description: "ลบ branch ที่ merge แล้ว",
-      },
-      {
-        command: "git branch",
-        description: "ตรวจว่ามีการลบ feature/login สำเร็จ",
-      },
-    ],
-    checkpoint: "ต้องไม่เห็น feature/login ในรายการ branch",
-  },
-  {
-    id: "lab-step-7",
-    title: "Step 7: ทดลองลบ branch ที่ยังไม่ merge และ cleanup",
-    task: "ดูความต่างระหว่าง -d และ -D แล้วลบโฟลเดอร์ทดลอง",
-    commands: [
-      {
-        command: "git branch -d feature/profile",
-        description: "ลองลบแบบปลอดภัย (ควรเจอเตือนเพราะยังไม่ merge)",
-      },
-      {
-        command: "git branch -D feature/profile",
-        description: "ลบแบบบังคับ",
-      },
-      {
-        command: "cd ..",
-        description: "ออกจากโฟลเดอร์ทดลอง",
-      },
-      {
-        command: "rm -rf git-branch-lab",
-        description: "ลบโฟลเดอร์ทดลองทั้งหมด",
+        id: "cleanup-sandbox",
+        title: "Lab 11: Cleanup sandbox และปิด exercise อย่างปลอดภัย",
+        summary: "จบการฝึกโดยคืนสภาพเครื่องและไม่เผลอลบ path ผิด",
+        difficulty: "Starter",
+        focus: "Cleanup",
+        task:
+          "ออกจากโฟลเดอร์ทดลองแล้วลบ sandbox ทิ้งอย่างระมัดระวังหลังแน่ใจว่าไม่ต้องใช้งานต่อ",
+        commands: [
+          {
+            command: "cd ..",
+            description: "ออกจากโฟลเดอร์ git-branch-lab ก่อนลบ",
+          },
+          {
+            command: "rm -rf git-branch-lab",
+            description: "ลบ sandbox ทั้งหมดเมื่อมั่นใจว่าอยู่ path ที่ถูกต้อง",
+          },
+        ],
+        checkpoint: "ลบโฟลเดอร์ git-branch-lab เรียบร้อยและจบ lab อย่างปลอดภัย",
+        notes: [
+          "ตรวจ `pwd` ให้แน่ใจก่อนลบโฟลเดอร์ทุกครั้ง โดยเฉพาะเมื่อใช้ `rm -rf`",
+        ],
       },
     ],
-    notes: [
-      "ตรวจ path ให้ถูกต้องก่อนใช้คำสั่งลบโฟลเดอร์",
-    ],
-    checkpoint: "ลบ branch และ cleanup โฟลเดอร์ทดลองเรียบร้อย",
   },
 ];

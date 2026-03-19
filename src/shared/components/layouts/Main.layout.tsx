@@ -9,11 +9,17 @@ const normalizePath = (path?: string) => {
   return path.endsWith("/") && path !== "/" ? path.slice(0, -1) : path;
 };
 
-const isLessonPathActive = (lessonSlug: string, pathname: string) => {
-  if (lessonSlug === "introduction") {
-    return pathname.startsWith("/introduction/");
+const isLessonPathActive = (
+  lesson: (typeof GIT_LESSONS)[number],
+  pathname: string,
+) => {
+  if (normalizePath(lesson.path) === pathname) {
+    return true;
   }
-  return false;
+
+  return lesson.subtopics.some(
+    (subtopic) => normalizePath(subtopic.path) === pathname,
+  );
 };
 
 export default function MainLayout() {
@@ -21,9 +27,7 @@ export default function MainLayout() {
   const activeLesson = useMemo(() => {
     const normalizedPathname = normalizePath(pathname);
     return GIT_LESSONS.find(
-      (lesson) =>
-        normalizePath(lesson.path) === normalizedPathname ||
-        isLessonPathActive(lesson.slug, normalizedPathname),
+      (lesson) => isLessonPathActive(lesson, normalizedPathname),
     );
   }, [pathname]);
 

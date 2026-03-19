@@ -11,6 +11,10 @@ export const REMOTE_COLLABORATION_SIDE_BAR_DATA: SidebarData = {
       path: remoteCollaborationPath.getGitClonePath(),
     },
     {
+      title: "git fetch",
+      path: remoteCollaborationPath.getGitFetchPath(),
+    },
+    {
       title: "git pull",
       path: remoteCollaborationPath.getGitPullPath(),
     },
@@ -19,8 +23,12 @@ export const REMOTE_COLLABORATION_SIDE_BAR_DATA: SidebarData = {
       path: remoteCollaborationPath.getGitPushPath(),
     },
     {
-      title: "Pull Request Flow",
+      title: "Pull requests",
       path: remoteCollaborationPath.getPullRequestFlowPath(),
+    },
+    {
+      title: "Rules",
+      path: remoteCollaborationPath.getRulesPath(),
     },
   ],
 };

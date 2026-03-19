@@ -1,6 +1,8 @@
 import { PUBLIC_ROUTE } from "@/shared/constants/routes/public.constant";
+import { basicGitCommandPath } from "@/features/basic-git-command/constants/basic-git-command.path.constant";
 import { mergeRebasePath } from "@/features/merge-rebase/constants/merge-rebase.path.constant";
 import { remoteCollaborationPath } from "@/features/remote-collaboration/constants/remote-collaboration.path.constant";
+import { labPath } from "@/features/lab/constants/lab.path.constant";
 
 export type GitLessonSlug =
   | "introduction"
@@ -10,7 +12,8 @@ export type GitLessonSlug =
   | "branching"
   | "merge-rebase"
   | "undo-history"
-  | "remote-collaboration";
+  | "remote-collaboration"
+  | "lab";
 
 export type GitLessonSubtopic = {
   anchor: string;
@@ -97,24 +100,31 @@ export const GIT_LESSONS: GitLesson[] = [
     slug: "repository-basics",
     title: "Repository Basics",
     path: PUBLIC_ROUTE.LESSON.REPOSITORY_BASICS,
-    summary: "เริ่มต้น repository ใหม่หรือ clone จากของเดิมให้ถูกขั้นตอน",
+    summary:
+      "เริ่มต้น repository ใหม่ วางกฎ ignore ให้ถูก และคงโครงสร้างโฟลเดอร์สำคัญไว้ตั้งแต่ต้น",
     subtopics: [
       {
         anchor: "git-init",
         title: "git init",
         description: "สร้าง repository ใหม่ในโฟลเดอร์ปัจจุบันเพื่อเริ่มติดตามไฟล์",
         commands: ["git init"],
-      },
-      {
-        anchor: "git-clone",
-        title: "git clone",
-        description: "คัดลอก repository จาก remote มายังเครื่องของเรา",
-        commands: ["git clone <repository-url>"],
+        path: basicGitCommandPath.getGitInitPath(),
       },
       {
         anchor: "gitignore",
         title: ".gitignore",
-        description: "กำหนดไฟล์/โฟลเดอร์ที่ไม่ควรถูก track เช่น build output หรือ secret",
+        description:
+          "กำหนดไฟล์/โฟลเดอร์ที่ไม่ควรถูก track เช่น build output, dependencies หรือ secrets",
+        commands: ["touch .gitignore", "printf \"node_modules/\\ndist/\\n.env\\n\" > .gitignore"],
+        path: basicGitCommandPath.getGitIgnorePath(),
+      },
+      {
+        anchor: "gitkeep",
+        title: ".gitkeep",
+        description:
+          "ใช้ placeholder file เพื่อให้ Git เก็บโฟลเดอร์ว่างที่โปรเจกต์จำเป็นต้องมีไว้ได้",
+        commands: ["mkdir -p public/uploads", "touch public/uploads/.gitkeep"],
+        path: basicGitCommandPath.getGitKeepPath(),
       },
       {
         anchor: "repository-structure",
@@ -253,7 +263,7 @@ export const GIT_LESSONS: GitLesson[] = [
     title: "Remote Collaboration",
     path: remoteCollaborationPath.getGitClonePath(),
     summary:
-      "ทำงานกับ remote repository ตั้งแต่ clone โปรเจกต์ ดึงอัปเดตล่าสุด push งาน และปิดงานผ่าน Pull Request",
+      "ทำงานกับ remote repository ตั้งแต่ clone โปรเจกต์, fetch ข้อมูลล่าสุด, pull อัปเดต, push งาน, เปิด Pull Request และป้องกัน branch สำคัญด้วย rulesets",
     subtopics: [
       {
         anchor: "git-clone",
@@ -261,6 +271,14 @@ export const GIT_LESSONS: GitLesson[] = [
         description: "คัดลอก repository จาก remote ลงเครื่องเพื่อเริ่มทำงานในโปรเจกต์",
         commands: ["git clone <repository-url>"],
         path: remoteCollaborationPath.getGitClonePath(),
+      },
+      {
+        anchor: "git-fetch",
+        title: "git fetch",
+        description:
+          "ดึงข้อมูลล่าสุดจาก remote มาอัปเดต remote-tracking refs โดยยังไม่ merge เข้า branch ปัจจุบัน",
+        commands: ["git fetch origin"],
+        path: remoteCollaborationPath.getGitFetchPath(),
       },
       {
         anchor: "git-pull",
@@ -272,17 +290,65 @@ export const GIT_LESSONS: GitLesson[] = [
       {
         anchor: "git-push",
         title: "git push",
-        description: "ส่ง commit จาก local branch ขึ้น remote branch พร้อมเช็กสถานะก่อนและหลัง push",
-        commands: ["git push origin main"],
+        description:
+          "ส่ง commit จาก local branch ขึ้น remote branch พร้อมเช็กสถานะก่อนและหลัง push รวมถึงอัปเดต branch หลัง rebase อย่างปลอดภัย",
+        commands: [
+          "git push origin main",
+          "git push --force-with-lease origin feature/my-branch",
+        ],
         path: remoteCollaborationPath.getGitPushPath(),
       },
       {
         anchor: "pull-request-flow",
-        title: "Pull Request Flow",
+        title: "Pull requests",
         description:
-          "ฝึก workflow บน GitHub ตั้งแต่เปิด Pull Request รับรีวิว แก้ไข และ merge ให้ปลอดภัย",
+          "ฝึก workflow บน GitHub ตั้งแต่เปิด Pull requests รับรีวิว แก้ไข และ merge ให้ปลอดภัย",
         commands: ["git push -u origin feature/my-change"],
         path: remoteCollaborationPath.getPullRequestFlowPath(),
+      },
+      {
+        anchor: "github-rules",
+        title: "Rules",
+        description:
+          "ใช้ GitHub rulesets เพื่อกำหนดกติกาการ push และ merge สำหรับ branch สำคัญของทีม",
+        path: remoteCollaborationPath.getRulesPath(),
+      },
+    ],
+  },
+  {
+    slug: "lab",
+    title: "Lab",
+    path: PUBLIC_ROUTE.LESSON.LAB,
+    summary:
+      "ฝึก Git workflow แบบครบลูปบนโปรเจกต์ NestJS หลายโดเมนที่แตกหลาย feature branches แล้วรวมกลับอย่างเป็นระบบ",
+    subtopics: [
+      {
+        anchor: "basic-flow",
+        title: "Ecommerce flow",
+        description:
+          "สร้าง NestJS app, แตก 10 feature branches ด้วย nest g res, แล้วฝึก add, commit, push, PR, merge และ rebase จนครบทุก feature",
+        path: labPath.getBasicFlowPath(),
+      },
+      {
+        anchor: "feature-to-dev-flow",
+        title: "Feature to dev flow",
+        description:
+          "ฝึก workflow แยกที่ให้ 10 feature branches เปิด PR เข้า dev ตั้งแต่แรก พร้อม fetch, rebase origin/dev และอัปเดต PR เดิมอย่างปลอดภัยบน branch ของตัวเอง",
+        path: labPath.getFeatureToDevFlowPath(),
+      },
+      {
+        anchor: "local-squash-flow",
+        title: "Local squash flow",
+        description:
+          "สร้าง NestJS task board app, แตก 10 feature branches, ใช้ nest g res และฝึกรวมงานกลับ main ด้วย git merge --squash บนเครื่องตัวเอง",
+        path: labPath.getLocalSquashFlowPath(),
+      },
+      {
+        anchor: "booking-flow",
+        title: "Booking flow",
+        description:
+          "ใช้ NestJS booking app เป็นตัวอย่างอีกชุด แล้วฝึก workflow เดิมตั้งแต่แตก branch, generate resources, เปิด PR, merge และ rebase จนครบทั้งระบบจองห้องพัก",
+        path: labPath.getBookingFlowPath(),
       },
     ],
   },

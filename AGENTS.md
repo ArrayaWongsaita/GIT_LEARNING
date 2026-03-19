@@ -69,6 +69,23 @@ Guidelines:
 ## 5) Coding and Content Rules
 
 - Keep lesson content and static teaching data in feature constants files.
+- For lesson hands-on practice, prefer a dedicated `Lab Collection` section at the end of the page instead of a long flat `Mini Lab` list when the lesson has multiple scenarios.
+- Store lab definitions in feature constants, not inline JSX in the page component.
+- Prefer Accordion-based lab presentation for multi-scenario lessons:
+  - use shadcn `Accordion`
+  - keep items collapsed by default
+  - show summary metadata in the trigger when available
+- When a lesson lab grows beyond a short linear walkthrough, move the lab renderer into a feature-local component under `src/features/<feature>/components/*`.
+- Recommended lab item shape for richer lessons:
+  - `title`
+  - `summary`
+  - `difficulty`
+  - `focus`
+  - `task`
+  - `commands`
+  - `checkpoint`
+  - optional `notes`
+- Reuse existing command copy UX with `src/shared/components/command/CommandBlock.tsx` for all lab commands.
 - Use TypeScript strict style; avoid bypassing types with unsafe casts unless absolutely necessary.
 - Use alias imports (`@/*`) consistently for `src` paths.
 - Keep module naming aligned with existing conventions:
@@ -107,3 +124,10 @@ Before finishing any feature/lesson change, verify:
 3. Lesson registry entries (`GIT_LESSONS`) reference valid paths and metadata.
 4. Shared components were reused where possible before adding new primitives.
 5. No documentation/code references to non-existent backend folders or server-side patterns were introduced.
+
+## 8) Quality Gate Before Finish
+
+ต้องผ่านทั้งสองคำสั่งก่อนปิดงาน:
+
+- `pnpm exec tsc --noEmit`
+- `pnpm lint`

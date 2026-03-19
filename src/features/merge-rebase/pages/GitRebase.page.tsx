@@ -18,7 +18,6 @@ import {
   GIT_REBASE_INTERACTIVE_NOTES,
   GIT_REBASE_INTERACTIVE_SIMULATOR_COVERAGE,
   GIT_REBASE_INTERACTIVE_TODO_EXAMPLE,
-  GIT_REBASE_LAB_STEPS,
   GIT_REBASE_SAFETY_NOTES,
   GIT_REBASE_SIM_INITIAL_BRANCHES,
   GIT_REBASE_SIM_INITIAL_COMMITS,
@@ -31,6 +30,7 @@ import {
   type GitRebaseTodoAction,
   type GitRebaseTodoItem,
 } from "@/features/merge-rebase/constants/git-rebase-content.constant";
+import { GitRebaseLabAccordion } from "@/features/merge-rebase/components/GitRebaseLabAccordion";
 
 type TerminalTone =
   | "label"
@@ -1961,84 +1961,22 @@ export default function GitRebasePage() {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="mini-lab" className="border-0">
+        <AccordionItem value="lab-collection" className="border-0">
           <AccordionTrigger className="rounded-xl border border-border bg-card px-4 py-3 text-base font-black tracking-tight text-foreground hover:no-underline md:px-6">
-            Mini Lab
+            Lab Collection
           </AccordionTrigger>
           <AccordionContent className="pt-3">
             <section className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
-        <h2 className="text-xl font-black tracking-tight text-foreground">Mini Lab</h2>
+        <h2 className="text-xl font-black tracking-tight text-foreground">Lab Collection</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          ทำตามลำดับนี้เพื่อซ้อม standard/interactive flow และทางออกเมื่อเกิด conflict
+          ชุดฝึกนี้แยกเป็น 3 sandbox repos เพื่อให้ซ้อม rebase หลายรูปแบบจนชิน
+          ตั้งแต่ linear replay, interactive cleanup, `--onto` ไปจนถึง conflict
+          recovery ด้วย continue, abort และ skip
         </p>
-
-        <ol className="mt-4 space-y-4">
-          {GIT_REBASE_LAB_STEPS.map((step, stepIndex) => (
-            <li key={step.id} className="rounded-xl border border-border bg-muted/30 p-4">
-              <div className="flex items-start gap-3">
-                <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-bold text-primary">
-                  {stepIndex + 1}
-                </span>
-                <div className="min-w-0">
-                  <h3 className="text-base font-bold text-foreground">{step.title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                    <span className="font-semibold text-foreground">Task:</span>{" "}
-                    {step.task}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-4 space-y-3">
-                {step.commands.map((commandItem, commandIndex) => {
-                  const commandKey = `lab-${step.id}-${commandIndex}`;
-                  const status = copyStatusByCommand[commandKey];
-
-                  return (
-                    <div key={commandKey} className="space-y-2">
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => {
-                            setCommandInput(commandItem.command);
-                            runCommand(commandItem.command);
-                          }}
-                        >
-                          Run
-                        </Button>
-                      </div>
-
-                      <CommandBlock
-                        command={commandItem.command}
-                        status={status}
-                        onCopy={() => handleCopyCommand(commandKey, commandItem.command)}
-                      />
-                      <p className="px-1 text-sm leading-6 text-muted-foreground">
-                        {commandItem.description}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {step.notes?.length ? (
-                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                  {step.notes.map((note) => (
-                    <li key={note}>{note}</li>
-                  ))}
-                </ul>
-              ) : null}
-
-              <div className="mt-4 rounded-lg border border-primary/30 bg-primary/10 p-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-                  Checkpoint
-                </p>
-                <p className="mt-1 text-sm text-foreground">{step.checkpoint}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <GitRebaseLabAccordion
+          copyStatusByCommand={copyStatusByCommand}
+          onCopyCommand={handleCopyCommand}
+        />
       </section>
           </AccordionContent>
         </AccordionItem>

@@ -12,13 +12,27 @@ export type GitRebaseLabCommand = {
   description: string;
 };
 
-export type GitRebaseLabStep = {
+export type GitRebaseLabDifficulty = "Starter" | "Practice" | "Challenge";
+
+export type GitRebaseLab = {
   id: string;
   title: string;
+  summary: string;
+  difficulty: GitRebaseLabDifficulty;
+  focus: string;
   task: string;
   commands: GitRebaseLabCommand[];
   checkpoint: string;
   notes?: string[];
+};
+
+export type GitRebaseLabSection = {
+  id: string;
+  title: string;
+  summary: string;
+  workspace: string;
+  focusFiles: string[];
+  labs: GitRebaseLab[];
 };
 
 export type GitRebaseTodoAction = "pick" | "squash";
@@ -231,6 +245,17 @@ export const GIT_REBASE_COMMAND_DOCS: GitRebaseCommandDoc[] = [
       "เดโมรองรับ pick/squash และเลื่อนลำดับ commit ก่อนกด apply plan",
   },
   {
+    id: "rebase-onto",
+    title: "ย้ายชุด commit ไปฐานใหม่ด้วย --onto",
+    purpose: "ย้าย child branch หรือชุด commit บางช่วงให้ไปอยู่บนฐานใหม่แบบเจาะจง",
+    command: "git rebase --onto <new-base> <upstream> <branch>",
+    description:
+      "เลือกเฉพาะ commit หลัง <upstream> บน <branch> แล้ว replay ไปต่อบน <new-base>",
+    notes: [
+      "เหมาะกับ stacked branch หรือการย้ายงานเฉพาะช่วงออกจากฐานเดิม",
+    ],
+  },
+  {
     id: "rebase-continue",
     title: "ดำเนินการ replay ต่อ",
     purpose: "เดิน rebase ทีละก้อน หลังแก้ conflict หรือหลังเริ่ม session",
@@ -403,103 +428,660 @@ export const GIT_REBASE_SAFETY_NOTES: string[] = [
   "`git rebase` เปลี่ยน commit hash จึงไม่ควร force-push ไปทับงานคนอื่นโดยไม่ตกลงทีม",
   "ถ้าเจอ conflict ให้แก้ไฟล์และ `git add <file>` ก่อนค่อย `git rebase --continue`",
   "`git rebase --skip` ใช้ตัด commit ปัจจุบันออกจากประวัติใหม่ ควรใช้แบบตั้งใจ",
+  "`git rebase --onto` เป็นเครื่องมือ rewrite history ฝั่ง local ขั้นสูง เหมาะกับ stacked branch และยังไม่ได้ถูกจำลองใน simulator หน้านี้",
   "เมื่อไม่มั่นใจ ให้ `git rebase --abort` เพื่อกลับ snapshot ก่อนเริ่ม",
 ];
 
-export const GIT_REBASE_LAB_STEPS: GitRebaseLabStep[] = [
+export const GIT_REBASE_LAB_SECTIONS: GitRebaseLabSection[] = [
   {
-    id: "lab-step-1",
-    title: "Step 1: Standard Rebase",
-    task: "ย้าย feature/login ไปบน main และ replay ให้ครบ",
-    commands: [
+    id: "repo-1-linear-rebase-foundations",
+    title: "Repo 1: Linear Rebase Foundations",
+    summary:
+      "ฝึก flow rebase พื้นฐานให้คล่องบน sandbox เดียว ตั้งแต่สร้าง feature history, ปล่อย main เดินต่อ, แล้วค่อย replay commit กลับมาเป็นเส้นตรง",
+    workspace: "rebase-linear-foundation-lab",
+    focusFiles: ["README.md", "release-notes.md", "routes.txt"],
+    labs: [
       {
-        command: "git switch feature/login",
-        description: "สลับไป branch ที่ต้องการ rebase",
+        id: "repo-1-linear-rebase-foundations-1",
+        title: "Lab 1: Bootstrap linear history sandbox",
+        summary: "สร้าง repo ตั้งต้นสำหรับซ้อม rebase แบบไม่มี conflict ก่อน",
+        difficulty: "Starter",
+        focus: "Repo Setup",
+        task:
+          "เตรียม sandbox สำหรับฝึก rebase โดยมีไฟล์ docs และ route map ที่แก้ไขง่ายและอ่านผลหลัง rebase ได้ชัด",
+        commands: [
+          {
+            command: "mkdir rebase-linear-foundation-lab",
+            description: "สร้างโฟลเดอร์ sandbox ใหม่สำหรับฝึก linear rebase",
+          },
+          {
+            command: "cd rebase-linear-foundation-lab",
+            description: "ย้ายเข้าไปทำงานใน sandbox repo แรก",
+          },
+          {
+            command: "git init -b main",
+            description: "เริ่ม repository พร้อมกำหนด branch หลักเป็น main",
+          },
+          {
+            command: "echo '# Release Notes Lab' > README.md",
+            description: "สร้าง README ไว้ใช้เพิ่ม checklist ระหว่างฝึก",
+          },
+          {
+            command: "echo 'v1.0.0' > release-notes.md",
+            description: "สร้าง release notes เบื้องต้นไว้เป็นไฟล์เอกสารหลัก",
+          },
+          {
+            command: "echo '/ -> home' > routes.txt",
+            description: "สร้าง route map แบบง่ายเพื่อใช้เพิ่ม history ฝั่ง feature",
+          },
+          {
+            command: "git add README.md release-notes.md routes.txt",
+            description: "stage ไฟล์ตั้งต้นทั้งหมดก่อน commit ฐาน",
+          },
+          {
+            command: "git commit -m \"chore: bootstrap release docs repo\"",
+            description: "สร้าง base commit ของ sandbox linear rebase",
+          },
+        ],
+        checkpoint:
+          "main ควรมี commit ตั้งต้น 1 ก้อน และทั้ง 3 ไฟล์พร้อมใช้สำหรับแตก branch งาน",
+        notes: [
+          "ถ้าคุณทำ labs แบบต่อเนื่อง ให้รัน Lab 1 เพียงครั้งเดียวเพื่อเตรียม repo",
+        ],
       },
       {
-        command: "git rebase main",
-        description: "เริ่ม session rebase ไปยัง main",
+        id: "repo-1-linear-rebase-foundations-2",
+        title: "Lab 2: Create the first feature commit",
+        summary: "เริ่มแตก branch งานและเพิ่ม commit เอกสารก้อนแรกบน feature",
+        difficulty: "Starter",
+        focus: "Feature Commit",
+        task:
+          "สร้าง branch งานใหม่แล้วเพิ่ม checklist ฝั่ง release เพื่อให้เห็น feature branch นำหน้า main อย่างชัดเจน",
+        commands: [
+          {
+            command: "git switch -c feature/release-copy",
+            description: "สร้าง feature branch สำหรับเก็บงานฝั่ง release copy",
+          },
+          {
+            command: "echo '## Release Checklist' >> README.md",
+            description: "เพิ่ม checklist ลง README เพื่อสร้างความเปลี่ยนแปลงก้อนแรกบน feature",
+          },
+          {
+            command: "git add README.md",
+            description: "stage เฉพาะไฟล์ README ที่เพิ่งแก้",
+          },
+          {
+            command: "git commit -m \"docs: add release checklist\"",
+            description: "บันทึก commit แรกบน feature/release-copy",
+          },
+        ],
+        checkpoint:
+          "feature/release-copy ควรนำหน้า main 1 commit และ README มี checklist ใหม่",
       },
       {
-        command: "git rebase --continue",
-        description: "replay commit ก้อนแรก",
+        id: "repo-1-linear-rebase-foundations-3",
+        title: "Lab 3: Add a second feature commit",
+        summary: "เพิ่มอีก commit บน branch เดิมเพื่อให้มี history ที่จะถูก replay มากกว่า 1 ก้อน",
+        difficulty: "Practice",
+        focus: "Replay Queue",
+        task:
+          "ต่อยอด feature branch เดิมด้วย commit ที่แก้ routes.txt เพื่อให้ภายหลัง rebase ต้องพา 2 commit ไปวางบนฐานใหม่",
+        commands: [
+          {
+            command: "echo '/releases -> release-dashboard' >> routes.txt",
+            description: "เพิ่ม route ใหม่เพื่อสร้าง commit ก้อนที่สองบน feature",
+          },
+          {
+            command: "git add routes.txt",
+            description: "stage ไฟล์ routes.txt ที่เพิ่งแก้",
+          },
+          {
+            command: "git commit -m \"feat: add release dashboard route\"",
+            description: "สร้าง commit ที่สองบน feature/release-copy",
+          },
+          {
+            command: "git log --oneline --decorate -n 4",
+            description: "ดูให้เห็นว่า feature branch มี 2 commit ต่อจากฐานเดิมแล้ว",
+          },
+        ],
+        checkpoint:
+          "feature/release-copy ควรมี commit docs และ feat เรียงต่อกันเหนือ base commit เดิม",
       },
       {
-        command: "git rebase --continue",
-        description: "replay ก้อนสุดท้ายจนจบ session",
+        id: "repo-1-linear-rebase-foundations-4",
+        title: "Lab 4: Advance main independently",
+        summary: "ปล่อยให้ main เดินต่ออีก 1 commit เพื่อสร้างสถานการณ์ที่ต้อง rebase จริง",
+        difficulty: "Practice",
+        focus: "Divergence",
+        task:
+          "กลับไป main แล้วแก้ release notes เพื่อให้ main และ feature แยกจากกันก่อนเริ่ม rebase",
+        commands: [
+          {
+            command: "git switch main",
+            description: "กลับมาที่ branch หลักก่อนเพิ่ม commit ใหม่บน main",
+          },
+          {
+            command: "echo 'v1.1.0-beta' >> release-notes.md",
+            description: "อัปเดต release notes เพื่อให้ main เดินหน้าออกจากฐานเดิม",
+          },
+          {
+            command: "git add release-notes.md",
+            description: "stage release-notes.md ที่เพิ่งแก้",
+          },
+          {
+            command: "git commit -m \"docs: prepare beta release notes\"",
+            description: "สร้าง commit ใหม่บน main เพื่อบังคับให้ feature ต้อง rebase",
+          },
+        ],
+        checkpoint:
+          "ตอนนี้ main และ feature/release-copy ควร diverge คนละด้านจาก base เดียวกัน",
+      },
+      {
+        id: "repo-1-linear-rebase-foundations-5",
+        title: "Lab 5: Rebase the feature onto updated main",
+        summary: "ย้าย feature history ไปต่อบนปลายใหม่ของ main แบบ linear",
+        difficulty: "Practice",
+        focus: "Standard Rebase",
+        task:
+          "กลับไป feature branch แล้ว replay 2 commits ของตัวเองบน commit ล่าสุดของ main เพื่อให้ history กลับมาเป็นเส้นตรง",
+        commands: [
+          {
+            command: "git switch feature/release-copy",
+            description: "กลับมายัง branch ที่ต้องการ rewrite history",
+          },
+          {
+            command: "git rebase main",
+            description: "ให้ Git replay commit ของ feature/release-copy ไปต่อบนปลายล่าสุดของ main",
+          },
+          {
+            command: "git status",
+            description: "ตรวจว่า rebase ปิด session แล้วและ working tree กลับมาสะอาด",
+          },
+        ],
+        checkpoint:
+          "feature/release-copy ควรชี้ hash ใหม่ 2 ก้อนบนปลาย main โดยไม่มี merge commit เพิ่ม",
+      },
+      {
+        id: "repo-1-linear-rebase-foundations-6",
+        title: "Lab 6: Verify rewritten hashes with git log",
+        summary: "อ่าน graph ให้ขาดว่าข้อความ commit เดิมอยู่ครบ แต่ hash ถูก rewrite แล้ว",
+        difficulty: "Challenge",
+        focus: "History Review",
+        task:
+          "ใช้ git log เพื่อตรวจว่าทั้งสอง commit บน feature ยังอยู่ครบตามลำดับเดิม แต่ตอนนี้ไปอยู่บน main ด้วย hash ใหม่หลัง rebase",
+        commands: [
+          {
+            command: "git log --oneline --graph --decorate --all",
+            description: "ดู graph รวมทุก branch เพื่อยืนยันว่า history กลับมาเป็นเส้นตรง",
+          },
+          {
+            command: "git log --oneline main..feature/release-copy",
+            description: "ดูเฉพาะ commit ที่ feature ยังมีมากกว่า main หลัง rebase",
+          },
+        ],
+        checkpoint:
+          "ควรเห็น feature/release-copy อยู่บน main แบบ linear และ commit ids ต่างจากก่อน rebase แม้ข้อความยังคงเดิม",
       },
     ],
-    checkpoint:
-      "feature/login ต้องชี้ hash ใหม่ และ main ยังชี้ที่ hash เดิม",
   },
   {
-    id: "lab-step-2",
-    title: "Step 2: Conflict And Gate",
-    task: "ทดสอบ conflict flow แบบ deterministic",
-    commands: [
+    id: "repo-2-interactive-cleanup-and-onto",
+    title: "Repo 2: Interactive Cleanup & --onto",
+    summary:
+      "ซ้อม cleanup history ที่ยุ่งด้วย interactive rebase และต่อยอดไปถึงการย้าย stacked branch ด้วย `--onto` เพื่อให้เข้าใจการ re-parent branch แบบเจาะจง",
+    workspace: "rebase-interactive-history-lab",
+    focusFiles: ["search.ts", "search.helpers.ts", "search.todo.txt"],
+    labs: [
       {
-        command: "git switch feature/conflict",
-        description: "เข้า branch ที่ถูกตั้งกฎ conflict ไว้",
+        id: "repo-2-interactive-cleanup-and-onto-1",
+        title: "Lab 1: Bootstrap search history sandbox",
+        summary: "สร้าง repo สำหรับฝึก interactive rebase และ stacked branches",
+        difficulty: "Starter",
+        focus: "Repo Setup",
+        task:
+          "เตรียม sandbox ที่มีไฟล์ search หลัก, helper และ todo list เพื่อใช้สร้าง history ที่ตั้งใจให้ยุ่งแล้วค่อย cleanup",
+        commands: [
+          {
+            command: "mkdir rebase-interactive-history-lab",
+            description: "สร้างโฟลเดอร์ sandbox สำหรับ interactive rebase",
+          },
+          {
+            command: "cd rebase-interactive-history-lab",
+            description: "เข้าไปทำงานใน sandbox ชุดที่สอง",
+          },
+          {
+            command: "git init -b main",
+            description: "เริ่ม repository และใช้ main เป็นฐานเริ่มต้น",
+          },
+          {
+            command: "echo \"export const search = () => 'ready';\" > search.ts",
+            description: "สร้างไฟล์ search หลักไว้เป็นฐานของ feature",
+          },
+          {
+            command: "echo \"export const normalize = (value) => value.trim();\" > search.helpers.ts",
+            description: "สร้าง helper file ตั้งต้นสำหรับงาน refactor ภายหลัง",
+          },
+          {
+            command: "echo '- search api' > search.todo.txt",
+            description: "สร้าง todo list แบบง่ายสำหรับเก็บงานค้างใน branch ลูก",
+          },
+          {
+            command: "git add search.ts search.helpers.ts search.todo.txt",
+            description: "stage ไฟล์ตั้งต้นทั้งหมด",
+          },
+          {
+            command: "git commit -m \"chore: bootstrap search workspace\"",
+            description: "สร้าง base commit ของ sandbox interactive",
+          },
+        ],
+        checkpoint:
+          "main ควรมี search.ts, search.helpers.ts และ search.todo.txt พร้อมสำหรับแตก stacked branches",
       },
       {
-        command: "git rebase main",
-        description: "เริ่ม rebase ไปยัง main",
+        id: "repo-2-interactive-cleanup-and-onto-2",
+        title: "Lab 2: Create a messy base branch",
+        summary: "ตั้งใจสร้าง commit ลำดับไม่สวยบน feature/search-base เพื่อใช้ reordering ภายหลัง",
+        difficulty: "Practice",
+        focus: "Messy Base History",
+        task:
+          "สร้าง branch ฐานของ search แล้ว commit งานในลำดับที่ยังไม่สวย เพื่อให้ interactive rebase มีโจทย์ให้ reorder จริง",
+        commands: [
+          {
+            command: "git switch -c feature/search-base",
+            description: "สร้าง branch ฐานสำหรับงาน search",
+          },
+          {
+            command: "echo \"export const searchProducts = (term) => buildQuery(term);\" >> search.ts",
+            description: "เพิ่มโค้ดที่พึ่ง helper ก่อน เพื่อจงใจทำให้ลำดับ commit ยังไม่เหมาะ",
+          },
+          {
+            command: "git add search.ts",
+            description: "stage การเปลี่ยนแปลงแรกบน branch ฐาน",
+          },
+          {
+            command: "git commit -m \"wip: wire searchProducts\"",
+            description: "สร้าง commit WIP ที่ควรถูกจัดลำดับใหม่ทีหลัง",
+          },
+          {
+            command: "echo \"export const buildQuery = (value) => value.trim().toLowerCase();\" >> search.helpers.ts",
+            description: "เพิ่ม helper ที่ควรอยู่ก่อน commit WIP เมื่อ cleanup history",
+          },
+          {
+            command: "git add search.helpers.ts",
+            description: "stage helper function ที่เพิ่งเพิ่ม",
+          },
+          {
+            command: "git commit -m \"feat: add query builder\"",
+            description: "สร้าง commit ที่ภายหลังควรถูก reorder มาอยู่ก่อน WIP",
+          },
+        ],
+        checkpoint:
+          "feature/search-base ควรมี 2 commits โดยลำดับปัจจุบันยังไม่สวยและพร้อมถูก reorder",
       },
       {
-        command: "git rebase --continue",
-        description: "ต้องเจอ conflict message ก่อน",
+        id: "repo-2-interactive-cleanup-and-onto-3",
+        title: "Lab 3: Add a stacked child branch",
+        summary: "แตก branch ลูกจาก feature/search-base พร้อมสร้าง noise ที่จะ squash ทีหลัง",
+        difficulty: "Practice",
+        focus: "Stacked Branch",
+        task:
+          "สร้าง feature/search-ui จาก branch ฐาน แล้วเพิ่ม commits ย่อย 2 ก้อนเพื่อใช้ซ้อม squash ใน interactive rebase รอบถัดไป",
+        commands: [
+          {
+            command: "git switch -c feature/search-ui",
+            description: "สร้าง child branch ที่พึ่งพา feature/search-base อยู่",
+          },
+          {
+            command: "echo '- add search input' >> search.todo.txt",
+            description: "เพิ่มงานฝั่ง UI ลง todo list เพื่อสร้าง commit เล็กก้อนแรก",
+          },
+          {
+            command: "git add search.todo.txt",
+            description: "stage ไฟล์ todo ที่เพิ่งแก้",
+          },
+          {
+            command: "git commit -m \"wip: add search input todo\"",
+            description: "สร้าง commit noise แรกบน branch ลูก",
+          },
+          {
+            command: "echo \"export const renderSearchBox = () => '<input type=\\\"search\\\" />';\" >> search.ts",
+            description: "เพิ่มฟังก์ชัน renderSearchBox เพื่อสร้าง commit ย่อยอีกก้อนบน branch ลูก",
+          },
+          {
+            command: "git add search.ts",
+            description: "stage search.ts ที่เพิ่งเพิ่ม UI helper",
+          },
+          {
+            command: "git commit -m \"fix: render search box\"",
+            description: "สร้าง commit ที่เหมาะจะถูกรวมกับ WIP ก่อนหน้า",
+          },
+        ],
+        checkpoint:
+          "feature/search-ui ควรพึ่ง feature/search-base และมี 2 commits ของตัวเองเพิ่มขึ้นมา",
       },
       {
-        command: "git add auth.tsx",
-        description: "ปลดล็อก conflict gate หลังแก้ไฟล์",
+        id: "repo-2-interactive-cleanup-and-onto-4",
+        title: "Lab 4: Reorder the base branch with `git rebase -i main`",
+        summary: "ใช้ interactive rebase จัดลำดับ commit บน branch ฐานให้เล่าเรื่องดีขึ้น",
+        difficulty: "Challenge",
+        focus: "Interactive Reorder",
+        task:
+          "กลับไป feature/search-base แล้วเปิด todo file เพื่อย้าย commit helper ให้อยู่ก่อน commit WIP ที่เรียกใช้งานมัน",
+        commands: [
+          {
+            command: "git switch feature/search-base",
+            description: "กลับมาที่ branch ฐานซึ่งมี commit ลำดับไม่สวยอยู่",
+          },
+          {
+            command: "git log --oneline --decorate -n 4",
+            description: "ตรวจลำดับ commit ปัจจุบันก่อนเริ่ม interactive rebase",
+          },
+          {
+            command: "git rebase -i main",
+            description: "เปิด todo file เพื่อ reorder commits ของ feature/search-base ใหม่",
+          },
+        ],
+        checkpoint:
+          "หลังบันทึก todo แล้ว commit `feat: add query builder` ควรถูก replay ให้อยู่ก่อน `wip: wire searchProducts`",
+        notes: [
+          "ใน editor ให้สลับบรรทัดของ `feat: add query builder` ขึ้นไปไว้ก่อน `wip: wire searchProducts`",
+        ],
       },
       {
-        command: "git rebase --continue",
-        description: "ผ่าน conflict และจบ replay",
+        id: "repo-2-interactive-cleanup-and-onto-5",
+        title: "Lab 5: Squash noisy UI commits and validate the cleanup",
+        summary: "ล้าง history ของ branch ลูกให้เหลือ commit ที่สื่อ intent ชัดขึ้น",
+        difficulty: "Challenge",
+        focus: "Squash Cleanup",
+        task:
+          "กลับไป feature/search-ui แล้วใช้ interactive rebase เพื่อลด commit ย่อย 2 ก้อนให้เหลือก้อนเดียวที่อธิบายงาน UI ได้ชัดกว่าเดิม",
+        commands: [
+          {
+            command: "git switch feature/search-ui",
+            description: "กลับมาที่ child branch ที่ยังมี commits ย่อยค่อนข้าง noisy",
+          },
+          {
+            command: "git rebase -i feature/search-base",
+            description: "เปิด todo file เพื่อ squash commits ของ feature/search-ui เข้าด้วยกัน",
+          },
+          {
+            command: "git log --oneline --graph --decorate --all",
+            description: "ตรวจ graph หลัง cleanup ว่า branch ลูกเหลือ history ที่อ่านง่ายขึ้นแล้ว",
+          },
+        ],
+        checkpoint:
+          "feature/search-ui ควรเหลือ commit UI ที่สะอาดขึ้นและ graph ต้องสะท้อนฐาน branch ใหม่ของมัน",
+        notes: [
+          "เปลี่ยน commit `fix: render search box` เป็น `squash` แล้วเขียน message ใหม่ให้สรุปงานเป็นก้อนเดียว เช่น `feat: add search ui draft`",
+        ],
+      },
+      {
+        id: "repo-2-interactive-cleanup-and-onto-6",
+        title: "Lab 6: Move the stacked branch with `--onto`",
+        summary: "ย้าย child branch ออกจากฐานเดิมไปวางบน main โดยไม่พก commits ของ base branch มาด้วย",
+        difficulty: "Challenge",
+        focus: "Branch Re-parenting",
+        task:
+          "ใช้ `git rebase --onto` เพื่อบอก Git ว่าให้เอาเฉพาะ commits ของ feature/search-ui ที่อยู่หลัง feature/search-base ไปวางต่อบน main",
+        commands: [
+          {
+            command: "git switch feature/search-ui",
+            description: "ยืนยันว่า HEAD อยู่ที่ child branch ที่ต้องการย้ายฐาน",
+          },
+          {
+            command: "git rebase --onto main feature/search-base feature/search-ui",
+            description: "ย้ายเฉพาะ commits ของ branch ลูกให้ไปต่อบน main โดยตัด dependency ต่อ base branch เดิมออก",
+          },
+          {
+            command: "git log --oneline --graph --decorate --all",
+            description: "ตรวจว่าตอนนี้ feature/search-ui ไปต่อบน main แล้วโดยไม่พ่วง history ของ feature/search-base",
+          },
+        ],
+        checkpoint:
+          "feature/search-ui ควรกลายเป็น branch อิสระบน main และ feature/search-base ยังคงอยู่แยกต่างหาก",
       },
     ],
-    checkpoint:
-      "ถ้าไม่ git add auth.tsx ก่อน continue ต้องไม่ผ่าน",
   },
   {
-    id: "lab-step-3",
-    title: "Step 3: Interactive Rebase (`-i`)",
-    task: "เปิด todo, reorder/squash แล้ว apply",
-    commands: [
+    id: "repo-3-conflict-recovery-paths",
+    title: "Repo 3: Conflict Recovery Paths",
+    summary:
+      "ฝึกเส้นทางรับมือ conflict ระหว่าง rebase แบบครบชุด ตั้งแต่ trigger, resolve + continue, abort, ไปจนถึง skip แล้วเปรียบเทียบผลลัพธ์ปลายทาง",
+    workspace: "rebase-conflict-recovery-lab",
+    focusFiles: ["auth.tsx", "feature-flags.json", "README.md"],
+    labs: [
       {
-        command: "git switch feature/login",
-        description: "กลับมาที่ login branch",
+        id: "repo-3-conflict-recovery-paths-1",
+        title: "Lab 1: Bootstrap conflict recovery sandbox",
+        summary: "เตรียม repo ตั้งต้นที่มีไฟล์ auth, flags และ docs พร้อมสำหรับทำ same-file divergence",
+        difficulty: "Starter",
+        focus: "Repo Setup",
+        task:
+          "สร้าง sandbox ใหม่พร้อม auth.tsx, feature-flags.json และ README.md เพื่อใช้ซ้อม conflict recovery หลายแบบใน repo เดียว",
+        commands: [
+          {
+            command: "mkdir rebase-conflict-recovery-lab",
+            description: "สร้างโฟลเดอร์ sandbox สำหรับฝึก conflict recovery",
+          },
+          {
+            command: "cd rebase-conflict-recovery-lab",
+            description: "เข้าไปทำงานใน sandbox ชุดที่สาม",
+          },
+          {
+            command: "git init -b main",
+            description: "เริ่ม repository พร้อม main branch",
+          },
+          {
+            command: "echo \"export const guardMode = 'strict';\" > auth.tsx",
+            description: "สร้างไฟล์ auth.tsx ตั้งต้นเพื่อใช้ทำ same-file conflict",
+          },
+          {
+            command: "echo '{\"betaBanner\": false}' > feature-flags.json",
+            description: "สร้างไฟล์ flags สำหรับใช้เปรียบเทียบ side changes บน main",
+          },
+          {
+            command: "echo '# Conflict Recovery Lab' > README.md",
+            description: "สร้าง README สำหรับบันทึกผลการทดลอง rebase แต่ละแบบ",
+          },
+          {
+            command: "git add auth.tsx feature-flags.json README.md",
+            description: "stage ไฟล์ตั้งต้นทั้งหมดก่อน commit ฐาน",
+          },
+          {
+            command: "git commit -m \"chore: bootstrap auth sandbox\"",
+            description: "สร้าง base commit ของ sandbox conflict",
+          },
+        ],
+        checkpoint:
+          "main ควรมีไฟล์ตั้งต้นครบ 3 ไฟล์และพร้อมใช้ทำ scenario conflict ซ้ำหลายรอบ",
       },
       {
-        command: "git rebase -i main",
-        description: "เปิด interactive plan",
+        id: "repo-3-conflict-recovery-paths-2",
+        title: "Lab 2: Create a feature branch plus a reusable backup",
+        summary: "ทำ branch งานที่มี commit ชนกับ main และเก็บ backup ไว้สำหรับ rerun scenario",
+        difficulty: "Practice",
+        focus: "Conflict Setup",
+        task:
+          "สร้าง branch งานที่แก้ auth.tsx และเพิ่ม docs commit ต่อท้าย จากนั้นแตก backup branch ไว้เพื่อกลับมาซ้อม abort/skip ได้โดยไม่ต้อง setup ใหม่",
+        commands: [
+          {
+            command: "git switch -c feature/auth-copy",
+            description: "สร้าง feature branch สำหรับงาน auth copy",
+          },
+          {
+            command: "echo \"export const guardMode = 'lenient';\" > auth.tsx",
+            description: "แก้ auth.tsx ในทางที่ตั้งใจให้ชนกับ main ภายหลัง",
+          },
+          {
+            command: "git add auth.tsx",
+            description: "stage auth.tsx ที่เพิ่งแก้",
+          },
+          {
+            command: "git commit -m \"feat: relax auth guard copy\"",
+            description: "สร้าง commit ที่จะกลายเป็นตัวชนหลักระหว่าง rebase",
+          },
+          {
+            command: "echo 'Document the auth copy review flow.' >> README.md",
+            description: "เพิ่ม docs commit ต่อท้ายเพื่อใช้สังเกตผลของ skip เทียบกับ continue",
+          },
+          {
+            command: "git add README.md",
+            description: "stage README.md ที่เพิ่งแก้",
+          },
+          {
+            command: "git commit -m \"docs: add auth copy note\"",
+            description: "สร้าง commit ที่สองบน feature branch",
+          },
+          {
+            command: "git branch feature/auth-copy-raw",
+            description: "เก็บจุดตั้งต้นของ branch ไว้สำหรับ rerun scenario แบบ abort และ skip",
+          },
+        ],
+        checkpoint:
+          "feature/auth-copy ควรมี 2 commits และ feature/auth-copy-raw ต้องชี้มาที่จุดเดียวกันก่อนเริ่ม rebase",
       },
       {
-        command: "git rebase --continue",
-        description: "หลัง apply plan ให้ continue ทีละก้อนจนจบ",
+        id: "repo-3-conflict-recovery-paths-3",
+        title: "Lab 3: Diverge main and trigger the conflict",
+        summary: "ทำให้ main แก้ไฟล์เดียวกันแล้วเริ่ม rebase เพื่อชน conflict แบบตั้งใจ",
+        difficulty: "Practice",
+        focus: "Conflict Trigger",
+        task:
+          "เพิ่ม commit ใหม่บน main ที่แก้ auth.tsx และ flags จากนั้นกลับมาเริ่ม rebase บน feature/auth-copy เพื่อให้ Git หยุดที่ conflict แรก",
+        commands: [
+          {
+            command: "git switch main",
+            description: "กลับมาที่ main เพื่อสร้าง commit ใหม่อีกด้านหนึ่ง",
+          },
+          {
+            command: "echo \"export const guardMode = 'strict-with-audit';\" > auth.tsx",
+            description: "แก้ auth.tsx บน main ให้ชนกับ commit แรกของ feature/auth-copy",
+          },
+          {
+            command: "echo '{\"betaBanner\": true}' > feature-flags.json",
+            description: "อัปเดต flags บน main เพิ่มอีกบริบทหนึ่งของ release",
+          },
+          {
+            command: "git add auth.tsx feature-flags.json",
+            description: "stage ไฟล์ที่เปลี่ยนบน main",
+          },
+          {
+            command: "git commit -m \"refactor: harden auth guard on main\"",
+            description: "สร้าง commit ใหม่บน main ให้ branch ทั้งสอง diverge กันชัด",
+          },
+          {
+            command: "git switch feature/auth-copy",
+            description: "กลับมายัง branch งานที่ต้องการ rebase",
+          },
+          {
+            command: "git rebase main",
+            description: "เริ่ม rebase เพื่อให้ Git หยุดที่ auth.tsx conflict",
+          },
+        ],
+        checkpoint:
+          "rebase ต้องหยุดที่ commit `feat: relax auth guard copy` และแจ้ง conflict ใน auth.tsx ก่อน docs commit จะถูก replay",
+      },
+      {
+        id: "repo-3-conflict-recovery-paths-4",
+        title: "Lab 4: Resolve, stage, and continue",
+        summary: "ซ้อมเส้นทางปกติของการแก้ conflict ให้จบ session อย่างปลอดภัย",
+        difficulty: "Challenge",
+        focus: "Resolve + Continue",
+        task:
+          "แก้ auth.tsx ให้ได้เวอร์ชันที่ต้องการ, stage ไฟล์นั้น, แล้วสั่ง continue เพื่อ replay commit ที่เหลือต่อจนจบ session",
+        commands: [
+          {
+            command: "echo \"export const guardMode = 'strict-with-audit-copy-reviewed';\" > auth.tsx",
+            description: "แทนที่ auth.tsx ด้วยเวอร์ชันที่ต้องการเก็บไว้หลัง resolve conflict",
+          },
+          {
+            command: "git add auth.tsx",
+            description: "stage ไฟล์ conflict ที่แก้แล้วเพื่อปลดล็อก rebase",
+          },
+          {
+            command: "git rebase --continue",
+            description: "ให้ Git replay commit ปัจจุบันและ commit ถัดไปต่อจนจบ session",
+          },
+          {
+            command: "git log --oneline --graph --decorate --all",
+            description: "ตรวจ graph หลัง continue ว่า docs commit ยังถูกพามาด้วยและ branch ชี้ hash ใหม่แล้ว",
+          },
+        ],
+        checkpoint:
+          "feature/auth-copy ควรได้ history ใหม่บน main โดยเก็บทั้งผล resolve และ docs commit เอาไว้ครบ",
+        notes: [
+          "ถ้าใช้ editor จริง ให้แก้ conflict markers ใน auth.tsx แทนการใช้ echo ทับทั้งไฟล์",
+        ],
+      },
+      {
+        id: "repo-3-conflict-recovery-paths-5",
+        title: "Lab 5: Re-run the same scenario and abort it",
+        summary: "ใช้ backup branch เดิมเพื่อซ้อมย้อนกลับเมื่อรู้สึกว่า rebase session ยังไม่พร้อมทำต่อ",
+        difficulty: "Challenge",
+        focus: "Abort Recovery",
+        task:
+          "สร้าง branch ทดลองใหม่จาก backup เดิม, ชน conflict แบบเดิมอีกครั้ง, แล้วใช้ `git rebase --abort` เพื่อกลับไปสภาพก่อนเริ่ม session",
+        commands: [
+          {
+            command: "git switch feature/auth-copy-raw",
+            description: "กลับไปที่ backup branch ซึ่งยังอยู่ก่อนรอบ rebase ทั้งหมด",
+          },
+          {
+            command: "git switch -c feature/auth-copy-abort",
+            description: "แตก branch ใหม่สำหรับซ้อมเส้นทาง abort แยกจาก branch อื่น",
+          },
+          {
+            command: "git rebase main",
+            description: "เริ่ม rebase เพื่อให้เกิด conflict เดิมอีกครั้ง",
+          },
+          {
+            command: "git rebase --abort",
+            description: "ยกเลิก rebase session และย้อน branch กลับไปจุดก่อนเริ่ม",
+          },
+          {
+            command: "git status",
+            description: "เช็กว่า working tree กลับมาสะอาดและไม่มี rebase session ค้างอยู่",
+          },
+        ],
+        checkpoint:
+          "feature/auth-copy-abort ต้องกลับไปชี้ history เดิมก่อน rebase และ working tree ควร clean",
+      },
+      {
+        id: "repo-3-conflict-recovery-paths-6",
+        title: "Lab 6: Re-run again with `--skip` and compare the outcome",
+        summary: "ดูผลของการทิ้ง conflicting commit แล้วปล่อยให้ commit ถัดไปยังถูก replay ต่อ",
+        difficulty: "Challenge",
+        focus: "Skip Strategy",
+        task:
+          "สร้าง branch ทดลองใหม่อีกรอบจาก backup เดิม, ชน conflict ซ้ำ, แล้วใช้ `git rebase --skip` เพื่อข้าม commit ที่ชน ก่อนปิดท้ายด้วยการอ่าน graph เปรียบเทียบผลลัพธ์",
+        commands: [
+          {
+            command: "git switch feature/auth-copy-raw",
+            description: "กลับสู่ backup branch เดิมอีกครั้งเพื่อเริ่ม scenario ใหม่จากจุดสะอาด",
+          },
+          {
+            command: "git switch -c feature/auth-copy-skip",
+            description: "แตก branch ใหม่สำหรับซ้อมเส้นทาง skip",
+          },
+          {
+            command: "git rebase main",
+            description: "เริ่ม rebase เพื่อให้ Git หยุดที่ auth.tsx conflict เหมือนเดิม",
+          },
+          {
+            command: "git rebase --skip",
+            description: "ข้าม commit ที่ชนกับ main แล้วปล่อยให้ Git replay commit ถัดไปแทน",
+          },
+          {
+            command: "git log --oneline --graph --decorate --all",
+            description: "อ่าน graph เพื่อเปรียบเทียบว่า conflicting commit หายไป แต่ docs commit ยังถูกพามาต่อได้",
+          },
+        ],
+        checkpoint:
+          "feature/auth-copy-skip ควรไม่มี commit `feat: relax auth guard copy` อยู่ในสายประวัติใหม่ แต่ docs commit ควรยังตามมาบน main ได้",
+        notes: [
+          "หลังจบ Lab นี้ ลองเทียบ graph ของ `feature/auth-copy`, `feature/auth-copy-abort` และ `feature/auth-copy-skip` เพื่อเห็นผลต่างของ continue, abort และ skip ชัด ๆ",
+        ],
       },
     ],
-    notes: [
-      "ใน UI ใช้ปุ่ม Up/Down และ toggle action เพื่อจัด todo list ก่อน apply",
-    ],
-    checkpoint:
-      "ประวัติใหม่ต้องสะท้อนลำดับ/การ squash ตาม plan",
-  },
-  {
-    id: "lab-step-4",
-    title: "Step 4: Skip/Abort",
-    task: "ซ้อมทางออกเมื่อไม่ต้องการ commit ปัจจุบันหรืออยากย้อนทั้ง session",
-    commands: [
-      {
-        command: "git rebase --skip",
-        description: "ข้าม queue item ปัจจุบันทันที",
-      },
-      {
-        command: "git rebase --abort",
-        description: "ย้อนกลับ snapshot ก่อนเริ่ม rebase",
-      },
-    ],
-    checkpoint:
-      "skip ต้องลดจำนวน queue และ abort ต้องคืน state เดิมทั้งหมด",
   },
 ];

@@ -11,10 +11,10 @@ import {
   GIT_ADD_COMMIT_COMMAND_DOCS,
   GIT_ADD_COMMIT_INITIAL_FILES,
   GIT_ADD_COMMIT_INITIAL_HISTORY,
-  GIT_ADD_COMMIT_LAB_STEPS,
   type GitAddCommitEntry,
   type GitAddCommitSimulatorFile,
 } from "@/features/basic-git-command/constants/git-add-commit-content.constant";
+import { GitAddCommitLabAccordion } from "@/features/basic-git-command/components/GitAddCommitLabAccordion";
 
 const DEFAULT_COMMIT_MESSAGE = "feat: stage and commit demo files";
 
@@ -756,63 +756,18 @@ export default function GitAddCommitPage() {
       </section>
 
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
-        <h2 className="text-xl font-black tracking-tight text-foreground">Mini Lab</h2>
+        <h2 className="text-xl font-black tracking-tight text-foreground">Lab Collection</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          ทำตามลำดับนี้บนเครื่องของตัวเองเพื่อเข้าใจ flow add + commit แบบครบวงจร
+          ชุด lab ด้านล่างขยายจาก flow เดิมให้มีหลายสถานการณ์มากขึ้น ทั้งแบบ guided,
+          selective staging, recovery และ challenge ปิดท้าย
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
-          คำแนะนำ: รันทีละคำสั่งและเช็ก <code>git status</code> / <code>git log</code> ทุก checkpoint
+          คำแนะนำ: ถ้าต้องการทำแบบต่อเนื่อง ให้เริ่มจาก Foundation Flow แล้วไล่ไปตามลำดับของ sections
         </p>
-
-        <ol className="mt-4 space-y-3">
-          {GIT_ADD_COMMIT_LAB_STEPS.map((step, index) => (
-            <li key={step.id} className="rounded-xl border border-border bg-muted/30 p-4">
-              <p className="text-sm font-semibold text-foreground">
-                {index + 1}. {step.title}
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">Task:</span> {step.task}
-              </p>
-
-              <div className="mt-3 space-y-3">
-                {step.commands.map((commandItem, commandIndex) => {
-                  const commandKey = `lab-${step.id}-${commandIndex}`;
-                  const status = copyStatusByCommand[commandKey];
-
-                  return (
-                    <div key={commandKey} className="space-y-2">
-                      <CommandBlock
-                        command={commandItem.command}
-                        status={status}
-                        onCopy={() =>
-                          handleCopyCommand(commandKey, commandItem.command)
-                        }
-                      />
-                      <p className="px-1 text-sm leading-6 text-muted-foreground">
-                        {commandItem.description}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {step.notes?.length ? (
-                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                  {step.notes.map((note) => (
-                    <li key={note}>{note}</li>
-                  ))}
-                </ul>
-              ) : null}
-
-              <div className="mt-3 rounded-lg border border-primary/30 bg-primary/10 p-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-                  Checkpoint
-                </p>
-                <p className="mt-1 text-sm text-foreground">{step.checkpoint}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <GitAddCommitLabAccordion
+          copyStatusByCommand={copyStatusByCommand}
+          onCopyCommand={handleCopyCommand}
+        />
       </section>
     </main>
   );

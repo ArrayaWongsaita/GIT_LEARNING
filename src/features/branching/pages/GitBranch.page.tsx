@@ -8,7 +8,6 @@ import { SetupGuideHeader } from "@/shared/components/setup-guide/SetupGuideHead
 import { Button } from "@/shared/components/ui/button";
 import {
   GIT_BRANCH_COMMAND_DOCS,
-  GIT_BRANCH_LAB_STEPS,
   GIT_BRANCH_SAFETY_NOTES,
   GIT_BRANCH_SIM_INITIAL_BRANCHES,
   GIT_BRANCH_SIM_INITIAL_COMMITS,
@@ -17,6 +16,7 @@ import {
   type GitBranchSimulatorBranch,
   type GitBranchSimulatorCommit,
 } from "@/features/branching/constants/git-branch-content.constant";
+import { GitBranchLabAccordion } from "@/features/branching/components/GitBranchLabAccordion";
 
 type TerminalTone =
   | "label"
@@ -1211,65 +1211,18 @@ export default function GitBranchPage() {
       </section>
 
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
-        <h2 className="text-xl font-black tracking-tight text-foreground">Mini Lab</h2>
+        <h2 className="text-xl font-black tracking-tight text-foreground">Lab Collection</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          ทำตามลำดับนี้บนเครื่องจริงเพื่อเห็น flow การสร้าง สลับ merge และลบ branch ให้ครบ
+          ชุด lab ด้านล่างขยายจาก flow เดิมให้ครอบคลุมทั้งการสร้าง branch, อ่าน pointer,
+          merge, safe delete, force delete และ cleanup แบบเป็นขั้นเป็นตอน
         </p>
-
-        <ol className="mt-4 space-y-4">
-          {GIT_BRANCH_LAB_STEPS.map((step, stepIndex) => (
-            <li key={step.id} className="rounded-xl border border-border bg-muted/30 p-4">
-              <div className="flex items-start gap-3">
-                <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-bold text-primary">
-                  {stepIndex + 1}
-                </span>
-                <div className="min-w-0">
-                  <h3 className="text-base font-bold text-foreground">{step.title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                    <span className="font-semibold text-foreground">Task:</span> {step.task}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-4 space-y-3">
-                {step.commands.map((commandItem, commandIndex) => {
-                  const commandKey = `lab-${step.id}-${commandIndex}`;
-                  const status = copyStatusByCommand[commandKey];
-
-                  return (
-                    <div key={commandKey} className="space-y-2">
-                      <CommandBlock
-                        command={commandItem.command}
-                        status={status}
-                        onCopy={() =>
-                          handleCopyCommand(commandKey, commandItem.command)
-                        }
-                      />
-                      <p className="px-1 text-sm leading-6 text-muted-foreground">
-                        {commandItem.description}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {step.notes?.length ? (
-                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                  {step.notes.map((note) => (
-                    <li key={note}>{note}</li>
-                  ))}
-                </ul>
-              ) : null}
-
-              <div className="mt-4 rounded-lg border border-primary/30 bg-primary/10 p-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-                  Checkpoint
-                </p>
-                <p className="mt-1 text-sm text-foreground">{step.checkpoint}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <p className="mt-1 text-sm text-muted-foreground">
+          ถ้าต้องการทำแบบต่อเนื่อง ให้เริ่มจาก Foundation Listing &amp; Creation แล้วไล่ลงมาจนครบทุก section
+        </p>
+        <GitBranchLabAccordion
+          copyStatusByCommand={copyStatusByCommand}
+          onCopyCommand={handleCopyCommand}
+        />
       </section>
     </main>
   );

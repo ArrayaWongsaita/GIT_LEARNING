@@ -5,6 +5,7 @@ import { branchingPath } from "@/features/branching/constants/branching.path.con
 import { mergeRebasePath } from "@/features/merge-rebase/constants/merge-rebase.path.constant";
 import { undoHistoryPath } from "@/features/undo-history/constants/undo-history.path.constant";
 import { remoteCollaborationPath } from "@/features/remote-collaboration/constants/remote-collaboration.path.constant";
+import { labPath } from "@/features/lab/constants/lab.path.constant";
 
 export const PUBLIC_ROUTE = {
   HOME: "/",
@@ -17,5 +18,6 @@ export const PUBLIC_ROUTE = {
     MERGE_REBASE: mergeRebasePath.getGitMergePath(),
     UNDO_HISTORY: undoHistoryPath.getGitLogPath(),
     REMOTE_COLLABORATION: remoteCollaborationPath.getGitClonePath(),
+    LAB: labPath.getBasicFlowPath(),
   },
 };

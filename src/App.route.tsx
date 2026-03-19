@@ -9,6 +9,7 @@ import { branchingRoutes } from "./features/branching/routes/branching.routes";
 import { mergeRebaseRoutes } from "./features/merge-rebase/routes/merge-rebase.routes";
 import { undoHistoryRoutes } from "./features/undo-history/routes/undo-history.routes";
 import { remoteCollaborationRoutes } from "./features/remote-collaboration/routes/remote-collaboration.routes";
+import { labRoutes } from "./features/lab/routes/lab.routes";
 
 const appRouter = createBrowserRouter(
   [
@@ -32,6 +33,7 @@ const appRouter = createBrowserRouter(
         mergeRebaseRoutes,
         undoHistoryRoutes,
         remoteCollaborationRoutes,
+        labRoutes,
         { path: "*", Component: NotFound },
       ],
     },

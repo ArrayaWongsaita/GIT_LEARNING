@@ -16,6 +16,20 @@ export const basicGitCommandRoutes: RouteObject = {
       },
     },
     {
+      path: basicGitCommandPath.getGitIgnorePath(),
+      lazy: async () => {
+        const { default: Component } = await import("../pages/GitIgnore.page");
+        return { Component };
+      },
+    },
+    {
+      path: basicGitCommandPath.getGitKeepPath(),
+      lazy: async () => {
+        const { default: Component } = await import("../pages/GitKeep.page");
+        return { Component };
+      },
+    },
+    {
       path: basicGitCommandPath.getGitAddPath(),
       lazy: async () => {
         const { default: Component } = await import("../pages/GitAdd.page");
