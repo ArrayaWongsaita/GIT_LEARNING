@@ -14,7 +14,7 @@ import { animate } from "animejs";
 import {
   DURATION_END,
   DURATION_START,
-} from "@/features/transitionNavigate/constants/duration";
+} from "@/common/transitionNavigate/constants/duration";
 import {
   LOGO_URL,
   LOGO_WIDTH,
@@ -22,7 +22,7 @@ import {
   SITE_NAME,
   VORTEX_BG,
   VORTEX_RING_COUNT,
-} from "@/features/transitionNavigate/constants/transition/vortex";
+} from "@/common/transitionNavigate/constants/transition/vortex";
 import { navigationStore } from "../../stores/navigation.store";
 
 export function VortexTransition({ children }: { children: React.ReactNode }) {

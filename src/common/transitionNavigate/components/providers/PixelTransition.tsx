@@ -13,7 +13,7 @@ import { animate, stagger } from "animejs";
 import {
   DURATION_END,
   DURATION_START,
-} from "@/features/transitionNavigate/constants/duration";
+} from "@/common/transitionNavigate/constants/duration";
 import {
   LOGO_URL,
   LOGO_WIDTH,
@@ -23,7 +23,7 @@ import {
   PIXEL_ROWS,
   PIXEL_COLOR,
   PIXEL_ACCENT,
-} from "@/features/transitionNavigate/constants/transition/pixel";
+} from "@/common/transitionNavigate/constants/transition/pixel";
 import { navigationStore } from "../../stores/navigation.store";
 
 const TOTAL = PIXEL_COLS * PIXEL_ROWS;

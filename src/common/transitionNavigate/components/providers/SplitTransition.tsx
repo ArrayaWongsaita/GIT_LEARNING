@@ -14,7 +14,7 @@ import { animate } from "animejs";
 import {
   DURATION_END,
   DURATION_START,
-} from "@/features/transitionNavigate/constants/duration";
+} from "@/common/transitionNavigate/constants/duration";
 import {
   LOGO_URL,
   LOGO_WIDTH,
@@ -24,7 +24,7 @@ import {
   SITE_NAME,
   SITE_WELCOME,
   SITE_TAGLINE,
-} from "@/features/transitionNavigate/constants/transition/split";
+} from "@/common/transitionNavigate/constants/transition/split";
 import { navigationStore } from "../../stores/navigation.store";
 
 export function SplitTransition({ children }: { children: React.ReactNode }) {

@@ -13,14 +13,14 @@ import { animate, stagger } from "animejs";
 import {
   DURATION_END,
   DURATION_START,
-} from "@/features/transitionNavigate/constants/duration";
+} from "@/common/transitionNavigate/constants/duration";
 import {
   LOGO_URL,
   LOGO_WIDTH,
   LOGO_HEIGHT,
   SITE_NAME,
   INK_COLOR,
-} from "@/features/transitionNavigate/constants/transition/ink";
+} from "@/common/transitionNavigate/constants/transition/ink";
 import { navigationStore } from "../../stores/navigation.store";
 
 // Origins for each blob (% positions)

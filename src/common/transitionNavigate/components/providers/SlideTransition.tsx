@@ -7,13 +7,13 @@ import {
   DURATION,
   DURATION_END,
   DURATION_START,
-} from "@/features/transitionNavigate/constants/duration";
+} from "@/common/transitionNavigate/constants/duration";
 import {
   LOGO_URL,
   LOGO_WIDTH,
   LOGO_HEIGHT,
   SITE_NAME,
-} from "@/features/transitionNavigate/constants/transition/slide";
+} from "@/common/transitionNavigate/constants/transition/slide";
 import { navigationStore } from "../../stores/navigation.store";
 export function SlideTransition({ children }: { children: React.ReactNode }) {
   const { isAnimating } = navigationStore();

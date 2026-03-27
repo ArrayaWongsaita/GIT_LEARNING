@@ -136,11 +136,6 @@ const HAPPY_PATH_DONE_BOARD: PullRequestFlowBoardState = {
 };
 
 const WAIT_STEP_MS = 560;
-const GITHUB_PULL_REQUEST_IMAGE = {
-  src: "/images/git/github/pull-requests-overview.png",
-  alt: "ภาพหน้าจอ Pull requests บน GitHub",
-} as const;
-
 function wait(ms: number) {
   return new Promise<void>((resolve) => {
     window.setTimeout(resolve, ms);
@@ -398,41 +393,8 @@ export default function PullRequestFlowPage() {
       <SetupGuideHeader
         badge="GitHub"
         title="Pull requests"
-        description="เข้าใจ workflow ของ Pull requests บน GitHub ตั้งแต่เปิด PR รับรีวิว แก้ไข และ merge อย่างเป็นระบบ พร้อมมีช่องสำหรับใส่ภาพประกอบของคุณภายหลัง"
+        description="เข้าใจ workflow ของ Pull requests บน GitHub ตั้งแต่เปิด PR รับรีวิว แก้ไข และ merge อย่างเป็นระบบ"
       />
-
-      <section className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-            <h2 className="text-xl font-black tracking-tight text-foreground">
-              Image Placeholder
-            </h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              ผมใส่แท็ก <code>&lt;img /&gt;</code> พร้อม <code>src</code> placeholder
-              ไว้ให้แล้ว คุณสามารถแทน path นี้ด้วยรูปของคุณภายหลังได้ทันที
-            </p>
-          </div>
-          <code className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-            {GITHUB_PULL_REQUEST_IMAGE.src}
-          </code>
-        </div>
-
-        <figure className="mt-4 overflow-hidden rounded-xl border border-dashed border-primary/35 bg-muted/20">
-          <img
-            src={GITHUB_PULL_REQUEST_IMAGE.src}
-            alt={GITHUB_PULL_REQUEST_IMAGE.alt}
-            className="h-auto w-full"
-            loading="lazy"
-            onError={(event) => {
-              event.currentTarget.style.display = "none";
-            }}
-          />
-          <figcaption className="border-t border-dashed border-primary/25 bg-background/80 p-4 text-sm leading-6 text-muted-foreground">
-            วางภาพหน้าจอ Pull requests ของคุณใน <code>{GITHUB_PULL_REQUEST_IMAGE.src}</code>
-            หรือแก้ค่า <code>src</code> ในแท็ก <code>&lt;img /&gt;</code> นี้ได้เลย
-          </figcaption>
-        </figure>
-      </section>
 
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
         <h2 className="text-xl font-black tracking-tight text-foreground">

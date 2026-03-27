@@ -7,8 +7,8 @@ import {
   TRANSITION_MAP,
   toTransitionPath,
   type TransitionId,
-} from "@/features/transitionNavigate/constants/registry";
-import { useTransitionNavigate } from "@/features/transitionNavigate/hooks/useTransitionNavigate.hook";
+} from "@/common/transitionNavigate/constants/registry";
+import { useTransitionNavigate } from "@/common/transitionNavigate/hooks/useTransitionNavigate.hook";
 import { Button } from "@/shared/components/ui/button";
 
 export function TransitionDetailView({

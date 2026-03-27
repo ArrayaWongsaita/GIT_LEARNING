@@ -53,7 +53,7 @@ export default function MainSidebar() {
   const normalizedPathname = useMemo(() => normalizePath(pathname), [pathname]);
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="offcanvas">
       <SidebarHeader>
         <div className="px-2 py-1">
           <p className="text-xs text-sidebar-foreground/70">

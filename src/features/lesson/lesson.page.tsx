@@ -1,9 +1,12 @@
-import { TransitionLink } from "@/features/transitionNavigate/components/TransitionLink";
+import { TransitionLink } from "@/common/transitionNavigate/components/TransitionLink";
 import { PUBLIC_ROUTE } from "@/shared/constants/routes/public.constant";
 import { ArrowLeft, ArrowRight, BookOpenCheck } from "lucide-react";
 import { useMemo } from "react";
 import { useParams } from "react-router";
-import { GIT_LESSONS, getGitLessonBySlug } from "./constants/gitLesson.constant";
+import {
+  GIT_LESSONS,
+  getGitLessonBySlug,
+} from "./constants/gitLesson.constant";
 
 export default function LessonPage() {
   const { lessonSlug } = useParams();
@@ -12,7 +15,9 @@ export default function LessonPage() {
   const navigation = useMemo(() => {
     if (!lesson) return null;
 
-    const currentIndex = GIT_LESSONS.findIndex((item) => item.slug === lesson.slug);
+    const currentIndex = GIT_LESSONS.findIndex(
+      (item) => item.slug === lesson.slug,
+    );
     if (currentIndex < 0) return null;
 
     return {
@@ -27,7 +32,9 @@ export default function LessonPage() {
   if (!lesson) {
     return (
       <section className="mx-auto flex w-full max-w-3xl flex-col items-start gap-4 rounded-2xl border bg-white p-6">
-        <p className="text-sm font-semibold text-rose-600">ไม่พบบทเรียนที่ต้องการ</p>
+        <p className="text-sm font-semibold text-rose-600">
+          ไม่พบบทเรียนที่ต้องการ
+        </p>
         <h2 className="text-2xl font-bold text-slate-900">Lesson Not Found</h2>
         <p className="text-sm leading-6 text-slate-600">
           บทเรียนที่คุณเรียกอาจไม่ถูกต้องหรือถูกย้ายตำแหน่งแล้ว
@@ -53,7 +60,9 @@ export default function LessonPage() {
         <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-900">
           {lesson.title}
         </h2>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-700">{lesson.summary}</p>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-700">
+          {lesson.summary}
+        </p>
       </header>
 
       <section className="grid gap-4">
@@ -63,8 +72,12 @@ export default function LessonPage() {
             id={subtopic.anchor}
             className="scroll-mt-24 rounded-xl border bg-white p-5 shadow-sm"
           >
-            <h3 className="text-lg font-bold text-slate-900">{subtopic.title}</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{subtopic.description}</p>
+            <h3 className="text-lg font-bold text-slate-900">
+              {subtopic.title}
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              {subtopic.description}
+            </p>
 
             {subtopic.commands?.length ? (
               <pre className="mt-4 overflow-x-auto rounded-lg border border-slate-200 bg-slate-900 p-3 text-xs text-cyan-200 md:text-sm">

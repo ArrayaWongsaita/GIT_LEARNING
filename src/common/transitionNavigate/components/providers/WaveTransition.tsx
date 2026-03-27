@@ -15,7 +15,7 @@ import { animate, stagger } from "animejs";
 import {
   DURATION_END,
   DURATION_START,
-} from "@/features/transitionNavigate/constants/duration";
+} from "@/common/transitionNavigate/constants/duration";
 import {
   LOGO_URL,
   LOGO_WIDTH,
@@ -23,7 +23,7 @@ import {
   WAVE_STRIP_COLORS,
   WAVE_STRIP_COUNT,
   SITE_NAME,
-} from "@/features/transitionNavigate/constants/transition/wave";
+} from "@/common/transitionNavigate/constants/transition/wave";
 import { navigationStore } from "../../stores/navigation.store";
 
 export function WaveTransition({ children }: { children: React.ReactNode }) {

@@ -10,15 +10,19 @@ Read this file before making any code changes.
 3. Inspect routing entry points:
    - `src/App.tsx`
    - `src/App.route.tsx`
-4. Inspect feature architecture under `src/features/*`.
+4. Inspect feature architecture under:
+   - `src/features/*`
+   - `src/common/*` for app-wide infrastructure that is not lesson-specific
 5. Confirm core implementation style:
    - feature constants/pages/routes
+   - common infrastructure/hooks/providers
    - shared components/constants/types
 
 ## 1) Core Architecture
 
 - Frontend-only application (React + Vite + TypeScript).
 - Feature-based organization under `src/features/<feature-name>`.
+- App-wide infrastructure that should not live inside a lesson feature belongs in `src/common/*`.
 - Shared building blocks under `src/shared/*`.
 - Keep feature concerns isolated; do not mix unrelated lesson/domain logic in a single feature module.
 
@@ -56,12 +60,14 @@ Prefer existing shared components before building new UI primitives:
 Guidelines:
 
 - Add feature-specific composition in `src/features/*`.
+- Add app-wide providers, navigation infrastructure, and cross-feature runtime concerns in `src/common/*`.
 - Add cross-feature reusable elements in `src/shared/components/*`.
 - Reuse existing types in `src/shared/types/*` when appropriate.
 
 ## 4) Navigation and UX Rules
 
 - Keep app router wrapped with `TransitionNavigateProvider` in `src/App.tsx`.
+- Import the provider from `src/common/transitionNavigate/components/TransitionNavigate.provider`.
 - Prefer transition-aware navigation patterns where applicable.
 - Keep lesson registry (`GIT_LESSONS`), sidebars, and actual routes consistent.
 - Preserve current layout structure using `MainLayout` unless a deliberate architecture change is requested.
@@ -98,12 +104,13 @@ Guidelines:
   - no server actions
   - no `src/env/server.ts` pattern requirements
 
-## 6) Quality Gate Before Finish
+## 6) Build and Validation Gate
 
 After all implementation changes are complete, always run a build once before handoff.
 
 Before closing work, run:
 
+- `pnpm exec tsc --noEmit`
 - `pnpm lint`
 - `pnpm build`
 
@@ -125,9 +132,10 @@ Before finishing any feature/lesson change, verify:
 4. Shared components were reused where possible before adding new primitives.
 5. No documentation/code references to non-existent backend folders or server-side patterns were introduced.
 
-## 8) Quality Gate Before Finish
+## 8) Final Command Checklist
 
-ต้องผ่านทั้งสองคำสั่งก่อนปิดงาน:
+ต้องผ่านอย่างน้อยคำสั่งตรวจหลักก่อนปิดงาน และถ้ามีการแก้ implementation ให้รัน build ด้วย:
 
 - `pnpm exec tsc --noEmit`
 - `pnpm lint`
+- `pnpm build`

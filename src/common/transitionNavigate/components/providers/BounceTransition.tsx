@@ -13,7 +13,7 @@ import { animate, stagger } from "animejs";
 import {
   DURATION_END,
   DURATION_START,
-} from "@/features/transitionNavigate/constants/duration";
+} from "@/common/transitionNavigate/constants/duration";
 import {
   LOGO_URL,
   LOGO_WIDTH,
@@ -21,7 +21,7 @@ import {
   BOUNCE_CHARS,
   BOUNCE_BG,
   SITE_NAME,
-} from "@/features/transitionNavigate/constants/transition/bounce";
+} from "@/common/transitionNavigate/constants/transition/bounce";
 import { navigationStore } from "../../stores/navigation.store";
 
 export function BounceTransition({ children }: { children: React.ReactNode }) {

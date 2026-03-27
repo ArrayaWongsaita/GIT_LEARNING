@@ -1,6 +1,8 @@
 export type GitIgnoreCommand = {
   command: string;
   description: string;
+  label?: string;
+  language?: string;
 };
 
 export type GitIgnoreSectionItem = {
@@ -39,51 +41,163 @@ export type GitIgnoreLabSection = {
 
 export const GIT_IGNORE_SECTIONS: GitIgnoreSection[] = [
   {
-    id: "start-with-rules",
-    title: "เริ่มต้นเขียน .gitignore ให้ตรงกับโปรเจกต์",
-    summary: "กำหนดไฟล์และโฟลเดอร์ที่ไม่ควรเข้า repository ตั้งแต่แรก",
+    id: "pattern-cheat-sheet",
+    title: "Pattern Cheat Sheet",
+    summary:
+      "ดู syntax หลักของ .gitignore ว่าใช้ ignore file, directory และยกเว้นบางไฟล์ยังไง",
     items: [
       {
-        id: "create-ignore-file",
-        title: "สร้าง .gitignore สำหรับไฟล์ที่ไม่ควรถูก track",
+        id: "ignore-single-file",
+        title: "ignore ไฟล์เดียวแบบระบุชื่อชัดเจน",
         purpose:
-          "กัน build output, dependencies และ secret ไม่ให้หลุดเข้า commit history",
+          "ใช้กับไฟล์เฉพาะที่ไม่ควรถูก track เช่น secret หรือ local config",
         commands: [
           {
-            command: "touch .gitignore",
-            description: "สร้างไฟล์ .gitignore ใน root ของ repository",
-          },
-          {
-            command: "printf \"node_modules/\\ndist/\\n.env\\n\" > .gitignore",
+            command: ".env",
             description:
-              "เพิ่มรายการที่มักไม่ควร track ในโปรเจกต์ JavaScript หรือ Vite",
-          },
-          {
-            command: "git status",
-            description:
-              "ตรวจว่ามีเฉพาะ .gitignore หรือไฟล์ที่ไม่ได้ถูก ignore เท่านั้นที่แสดงในผลลัพธ์",
+              "ถ้าไฟล์ชื่อ .env อยู่ตรง root ของ repo Git จะไม่แสดงไฟล์นี้ในสถานะอีก",
+            label: "Pattern",
+            language: "text",
           },
         ],
         notes: [
-          "ใส่ / ต่อท้ายชื่อโฟลเดอร์เพื่อสื่อว่า ignore ทั้งโฟลเดอร์",
-          "ควรสร้าง .gitignore ตั้งแต่เริ่ม repo เพื่อกันไฟล์หลุดเข้า history",
+          "เหมาะเมื่อรู้ชื่อไฟล์แน่นอนและไม่ต้องการใช้ wildcard",
+          "นำ pattern นี้ไปใส่ในไฟล์ .gitignore ได้ตรง ๆ",
         ],
       },
       {
-        id: "use-patterns",
-        title: "ใช้ pattern เพื่อ ignore หลายไฟล์พร้อมกัน",
-        purpose: "ลดงานเขียนกฎซ้ำเมื่อไฟล์มีรูปแบบชื่อคล้ายกัน",
+        id: "ignore-directory",
+        title: "ignore ทั้งโฟลเดอร์",
+        purpose: "ใช้กับ output หรือ generated files ที่เกิดใหม่ได้เรื่อย ๆ",
         commands: [
           {
-            command: "printf \"\\n*.log\\ncoverage/\\n.DS_Store\\n\" >> .gitignore",
+            command: "dist/",
             description:
-              "เพิ่ม pattern สำหรับไฟล์ log, coverage reports และไฟล์ระบบของ macOS",
+              "การใส่ / ท้ายชื่อจะสื่อว่าตั้งใจ ignore ทั้ง directory เช่นโฟลเดอร์ build output",
+            label: "Pattern",
+            language: "text",
           },
+        ],
+        notes: [
+          "เหมาะกับโฟลเดอร์ที่สร้างใหม่ได้จากคำสั่ง build หรือ tooling ของโปรเจกต์",
+        ],
+      },
+      {
+        id: "ignore-by-extension",
+        title: "ignore ตามนามสกุลไฟล์",
+        purpose: "ใช้ wildcard จับไฟล์หลายไฟล์ที่มีรูปแบบชื่อคล้ายกัน",
+        commands: [
           {
-            command: "git check-ignore -v debug.log",
+            command: "*.log",
             description:
-              "ตรวจว่าไฟล์ตัวอย่างถูก ignore ด้วย rule บรรทัดไหนใน .gitignore",
+              "Git จะ ignore ทุกไฟล์ที่ลงท้ายด้วย .log เช่น app.log หรือ debug.log",
+            label: "Pattern",
+            language: "text",
           },
+        ],
+        notes: [
+          "เหมาะกับ log files หรือไฟล์ชั่วคราวที่เกิดจากการรันแอปและการทดสอบ",
+        ],
+      },
+      {
+        id: "ignore-all-except-one",
+        title: "ignore ทุกไฟล์ในโฟลเดอร์ แต่ยกเว้น 1 ไฟล์",
+        purpose:
+          "คงโฟลเดอร์ไว้ใน repo แต่กันไฟล์ runtime หรือ uploads ภายในทั้งหมด",
+        commands: [
+          {
+            command: "uploads/*\n!uploads/.gitkeep",
+            description:
+              "บรรทัดแรก ignore ทุกไฟล์ใน uploads ส่วนบรรทัดที่สองอนุญาตให้ .gitkeep ยังถูก track เพื่อคงโฟลเดอร์ไว้",
+            label: "Pattern",
+            language: "text",
+          },
+        ],
+        notes: [
+          "เขียน broad rule ก่อน แล้วค่อยเขียน !rule เพื่อยกเว้นภายหลัง",
+          "การใช้ uploads/* จะ ignore เฉพาะไฟล์ข้างใน ทำให้ยกเว้น .gitkeep ได้ง่ายกว่า uploads/",
+        ],
+      },
+      {
+        id: "ignore-env-variants-except-example",
+        title: "ignore ไฟล์ env หลายแบบ แต่เก็บ template ไว้",
+        purpose:
+          "กันไฟล์ env จริงทั้งหมดไม่ให้หลุดเข้า repo แต่ยังแชร์ไฟล์ตัวอย่างให้ทีมใช้ได้",
+        commands: [
+          {
+            command: ".env*\n!.env.example",
+            description:
+              "ignore ทุกไฟล์ที่ขึ้นต้นด้วย .env แล้วอนุญาตให้ .env.example ยังถูก commit ได้",
+            label: "Pattern",
+            language: "text",
+          },
+        ],
+        notes: [
+          "เหมาะกับโปรเจกต์ที่ต้องการแจก template ของ environment variables ให้ทีม",
+          "ควรใส่เฉพาะค่าตัวอย่างหรือ key เปล่า ๆ ใน .env.example เท่านั้น",
+        ],
+      },
+    ],
+  },
+  {
+    id: "popular-web-node-ignores",
+    title: "ไฟล์และโฟลเดอร์ที่นิยม ignore ในโปรเจกต์ Web/Node",
+    summary:
+      "รวมรายการที่เจอบ่อยในโปรเจกต์ Vite, Node.js และเครื่องนักพัฒนาเพื่อเอาไปใช้ต่อได้ทันที",
+    items: [
+      {
+        id: "dependencies-build",
+        title: "dependencies และ build output",
+        purpose:
+          "กัน dependency tree และผลลัพธ์ที่สร้างใหม่ได้ไม่ให้รบกวนประวัติของ repo",
+        commands: [
+          {
+            command: "node_modules/\ndist/\nbuild/\ncoverage/",
+            description:
+              "รายการนี้ครอบคลุม dependency, output จากการ build และรายงาน test coverage ที่มัก regenerate ได้",
+            label: "Pattern",
+            language: "text",
+          },
+        ],
+        notes: [
+          "ถ้าโปรเจกต์ใช้โฟลเดอร์ output อื่น เช่น .next/ หรือ out/ ให้เพิ่มตาม stack ที่ใช้จริง",
+        ],
+      },
+      {
+        id: "secrets-env",
+        title: "secret และ env files",
+        purpose:
+          "ป้องกันค่าคอนฟิกจริงและ secret ไม่ให้ถูก commit ขึ้น repository",
+        commands: [
+          {
+            command: ".env\n.env.local\n.env.*.local\n!.env.example",
+            description:
+              "ignore ไฟล์ env ที่ใช้จริงทุกแบบ แต่ยังคง .env.example ไว้เป็น template สำหรับทีม",
+            label: "Pattern",
+            language: "text",
+          },
+        ],
+        notes: [
+          "ควร track .env.example เพื่อบอกชื่อ environment variables ที่โปรเจกต์ต้องใช้",
+        ],
+      },
+      {
+        id: "os-editor-logs",
+        title: "ไฟล์จาก OS, editor และ debug logs",
+        purpose:
+          "ลด noise จากไฟล์เฉพาะเครื่องที่ไม่เกี่ยวกับ source code",
+        commands: [
+          {
+            command:
+              ".DS_Store\nThumbs.db\n.vscode/\nnpm-debug.log*\npnpm-debug.log*\nyarn-error.log*",
+            description:
+              "ครอบคลุมไฟล์ระบบจาก macOS/Windows, setting ส่วนตัวของ editor และ log จาก package manager",
+            label: "Pattern",
+            language: "text",
+          },
+        ],
+        notes: [
+          "ignore .vscode/ เฉพาะเมื่อเป็นการตั้งค่าส่วนตัวของผู้ใช้ ถ้าทีมแชร์ settings หรือ extensions บางไฟล์อาจควร commit แยกเป็นรายไฟล์",
         ],
       },
     ],
@@ -144,17 +258,18 @@ export const GIT_IGNORE_LAB_SECTIONS: GitIgnoreLabSection[] = [
   {
     id: "gitignore-lab",
     title: "สถานการณ์ฝึกใช้ .gitignore",
-    summary: "ฝึกทั้งกรณีตั้งกฎตั้งแต่เริ่ม repo และกรณีแก้ไฟล์ที่เคยถูก track ไปแล้ว",
+    summary:
+      "ฝึกจาก pattern พื้นฐาน ไปจนถึง exception rules, tracked files และ local-only rules ในสถานการณ์แบบ Web/Node",
     labs: [
       {
-        id: "starter-node-ignore",
-        title: "Starter: กันไฟล์ build และ secret ตั้งแต่ต้น",
+        id: "starter-basic-ignore-patterns",
+        title: "Starter: ฝึก ignore file, dir และ wildcard ตั้งแต่เริ่ม repo",
         summary:
-          "ตั้ง .gitignore สำหรับโปรเจกต์ใหม่ แล้วตรวจว่า Git แสดงเฉพาะไฟล์ที่ควร commit",
+          "สร้าง repo ทดลองแล้วเช็กให้เห็นชัดว่า single file, directory และ wildcard pattern มีผลต่างกันอย่างไร",
         difficulty: "Starter",
-        focus: "สร้างกฎ ignore พื้นฐาน",
+        focus: "single file + directory + wildcard",
         task:
-          "สร้าง repo ทดลองและเพิ่มกฎให้ node_modules, dist และ .env ไม่โผล่ใน git status",
+          "สร้าง repo gitignore-lab แล้วเขียน .gitignore ให้ซ่อน .env, dist/ และ *.log ก่อนตรวจผลด้วย git status และ git check-ignore",
         commands: [
           {
             command: "mkdir gitignore-lab",
@@ -169,88 +284,133 @@ export const GIT_IGNORE_LAB_SECTIONS: GitIgnoreLabSection[] = [
             description: "เริ่ม repository ใหม่",
           },
           {
-            command: "printf \"node_modules/\\ndist/\\n.env\\n\" > .gitignore",
-            description: "สร้างกฎ ignore หลักที่เจอบ่อยในโปรเจกต์ web",
+            command: "printf \".env\\ndist/\\n*.log\\n\" > .gitignore",
+            description: "เขียนกฎ ignore สำหรับไฟล์เดียว, ทั้งโฟลเดอร์ และไฟล์ที่ match ด้วย wildcard",
           },
           {
-            command: "mkdir node_modules dist && touch .env README.md dist/app.js",
-            description: "สร้างไฟล์และโฟลเดอร์ตัวอย่างเพื่อดูผลของ rule",
+            command: "mkdir dist && touch .env README.md debug.log dist/app.js",
+            description: "สร้างไฟล์ตัวอย่างเพื่อดูว่า rule แต่ละแบบซ่อนไฟล์ไหนบ้าง",
           },
           {
             command: "git status",
-            description: "ตรวจว่าควรเห็น README.md และ .gitignore แต่ไม่ควรเห็น node_modules, dist, .env",
+            description: "ตรวจว่าควรเห็น README.md กับ .gitignore แต่ไม่ควรเห็น .env, debug.log และไฟล์ใน dist",
+          },
+          {
+            command: "git check-ignore -v .env",
+            description: "เช็กว่า .env ถูก ignore เพราะ rule บรรทัดไหนใน .gitignore",
+          },
+          {
+            command: "git check-ignore -v debug.log",
+            description: "เช็กว่าไฟล์ log ถูก wildcard *.log จับได้ถูกต้อง",
+          },
+          {
+            command: "git check-ignore -v dist/app.js",
+            description: "เช็กว่าไฟล์ใน dist ถูก ignore จาก rule ของ directory",
           },
         ],
         checkpoint:
-          "ผลลัพธ์ของ git status ต้องไม่แสดง node_modules/, dist/ และ .env เป็น untracked files",
+          "README.md ต้องยังเห็นใน git status แต่ .env, debug.log และ dist/app.js ต้องถูก ignore แล้ว",
       },
       {
-        id: "practice-untrack-secret",
-        title: "Practice: หยุด track ไฟล์ลับที่เคย add ไปแล้ว",
+        id: "practice-exception-rules",
+        title: "Practice: ignore ทั้งโฟลเดอร์ แต่ยกเว้น .gitkeep และ .env.example",
         summary:
-          "ลองกรณีที่ .env เคยถูก stage หรือ commit มาก่อน แล้วต้องแก้ให้ .gitignore มีผลจริง",
+          "ฝึกเขียน exception rule ด้วย ! เพื่อให้เก็บ placeholder หรือ template file ไว้ใน repo ได้",
         difficulty: "Practice",
-        focus: "ลบไฟล์ออกจาก index แบบปลอดภัย",
+        focus: "exception rule with !",
         task:
-          "จำลองว่ามี .env ที่ถูก track อยู่แล้ว จากนั้นทำให้ Git หยุดติดตามโดยไม่ลบไฟล์ในเครื่อง",
+          "ต่อจาก repo เดิม เพิ่มกฎ uploads/* กับ !uploads/.gitkeep และ .env* กับ !.env.example เพื่อฝึก exception rule",
         commands: [
           {
-            command: "echo \"SECRET=demo\" > .env",
-            description: "สร้างไฟล์ลับตัวอย่าง",
+            command: "mkdir -p uploads",
+            description: "สร้างโฟลเดอร์ uploads สำหรับจำลองไฟล์ runtime และ placeholder",
           },
           {
-            command: "git add .env && git commit -m \"chore: add env for lab\"",
-            description:
-              "จำลองสถานการณ์ที่ไฟล์ลับถูก track ไปแล้วในประวัติของ repo",
+            command: "touch uploads/.gitkeep uploads/avatar.png .env.example .env.local",
+            description: "สร้างทั้งไฟล์ที่ควรถูก ignore และไฟล์ที่ต้องการยกเว้นให้ยัง track ได้",
           },
           {
-            command: "printf \"\\n.env\\n\" >> .gitignore",
-            description: "เพิ่มกฎ ignore สำหรับ .env",
-          },
-          {
-            command: "git rm --cached .env",
-            description: "เอา .env ออกจาก index โดยเก็บไฟล์ไว้ในเครื่อง",
+            command:
+              "printf \"\\nuploads/*\\n!uploads/.gitkeep\\n.env*\\n!.env.example\\n\" >> .gitignore",
+            description: "เพิ่ม broad rules ก่อน แล้วตามด้วย exception rules ที่ใช้ !",
           },
           {
             command: "git status",
-            description: "ตรวจว่าการเปลี่ยนแปลงพร้อมสำหรับ commit แก้ history tracking แล้ว",
+            description: "ตรวจว่าควรเห็นเฉพาะ .gitkeep, .env.example และ .gitignore ที่ยังพร้อมถูก track",
+          },
+          {
+            command: "git check-ignore -v uploads/avatar.png",
+            description: "เช็กว่าไฟล์ runtime ใน uploads ถูก ignore จาก broad rule",
+          },
+          {
+            command: "git check-ignore -v .env.local",
+            description: "เช็กว่าไฟล์ env จริงถูก ignore จาก rule .env*",
+          },
+          {
+            command: "git add .gitignore uploads/.gitkeep .env.example",
+            description: "ลอง stage เฉพาะไฟล์ที่ต้องการเก็บไว้ใน repo",
+          },
+          {
+            command: "git status",
+            description: "ยืนยันว่ามีเฉพาะ .gitignore, uploads/.gitkeep และ .env.example ที่ถูก add ได้",
           },
         ],
-        notes: [
-          "ถ้า commit ไม่ผ่านเพราะยังไม่ได้ตั้ง user.name หรือ user.email ให้ไปตั้งค่าก่อนตามบท Setup Git",
-        ],
         checkpoint:
-          "หลัง git rm --cached .env แล้ว .env ต้องไม่ถูก track ต่อ และ commit ถัดไปควรมีแค่การลบออกจาก index",
+          "uploads/avatar.png และ .env.local ต้องถูก ignore ส่วน uploads/.gitkeep, .env.example และ .gitignore ต้องยัง add ได้",
       },
       {
-        id: "challenge-local-ignore",
-        title: "Challenge: แยกกฎส่วนกลางกับกฎเฉพาะเครื่อง",
+        id: "challenge-untrack-and-local-only",
+        title: "Challenge: แก้ไฟล์ที่เคย track ไปแล้ว และแยกกฎส่วนกลางกับกฎเฉพาะเครื่อง",
         summary:
-          "ฝึกเลือกใช้ .gitignore กับ .git/info/exclude ให้ตรงสถานการณ์ของทีมและของตัวเอง",
+          "จำลองว่ามีไฟล์ env ที่เคยถูก track มาแล้ว ก่อนถอดออกจาก index และเพิ่ม local-only ignore สำหรับไฟล์ส่วนตัว",
         difficulty: "Challenge",
-        focus: "repo-wide vs local-only ignore",
+        focus: "tracked file cleanup + local-only ignore",
         task:
-          "กำหนดให้ build artifacts ถูก ignore ทั้งทีม แต่ไฟล์ notes ส่วนตัวถูก ignore แค่ในเครื่องเรา",
+          "จำลองว่า .env.local เคยถูก track มาแล้ว จากนั้นเอาออกจาก index และเพิ่ม local-only rule สำหรับไฟล์ส่วนตัว",
         commands: [
+          {
+            command: "git add -f .env.local",
+            description: "บังคับ add ไฟล์ที่ปกติถูก ignore เพื่อจำลองกรณีที่มันเคยถูก track ไปแล้ว",
+          },
+          {
+            command: "git commit -m \"chore: simulate tracked env local\"",
+            description: "สร้าง commit จำลองให้ .env.local อยู่ในประวัติของ repo ก่อนแก้ปัญหาจริง",
+          },
+          {
+            command: "git rm --cached .env.local",
+            description: "ถอด .env.local ออกจาก index โดยไม่ลบไฟล์ในเครื่อง",
+          },
           {
             command: "printf \"\\ncoverage/\\n\" >> .gitignore",
-            description: "เพิ่มกฎส่วนกลางสำหรับทุกคนในทีม",
+            description: "เพิ่มกฎส่วนกลางให้ coverage ถูก ignore แบบแชร์ทั้งทีม",
+          },
+          {
+            command: "mkdir -p coverage && touch coverage/summary.txt scratch-notes.txt",
+            description: "สร้างไฟล์ตัวอย่างสำหรับทดสอบ repo-wide rule และ local-only rule",
           },
           {
             command: "printf \"scratch-notes.txt\\n\" >> .git/info/exclude",
-            description: "เพิ่มกฎ ignore แบบ local-only สำหรับไฟล์โน้ตส่วนตัว",
+            description: "เพิ่มกฎ ignore เฉพาะเครื่องนี้สำหรับไฟล์โน้ตส่วนตัว",
           },
           {
-            command: "git check-ignore -v coverage/report.txt",
-            description: "เช็กว่า coverage ถูก ignore จาก .gitignore",
+            command: "git check-ignore -v coverage/summary.txt",
+            description: "เช็กว่า coverage/summary.txt ถูก ignore จาก .gitignore",
           },
           {
             command: "git check-ignore -v scratch-notes.txt",
-            description: "เช็กว่าไฟล์โน้ตถูก ignore จาก .git/info/exclude",
+            description: "เช็กว่า scratch-notes.txt ถูก ignore จาก .git/info/exclude",
+          },
+          {
+            command: "git status",
+            description: "ยืนยันว่า .env.local ถูกถอดออกจาก index แล้ว และ source ของ ignore แต่ละไฟล์ทำงานถูกที่",
           },
         ],
+        notes: [
+          "git add -f ใน lab นี้ใช้เพื่อจำลองกรณีไฟล์ที่เคยถูก track ไปแล้วเท่านั้น ไม่ใช่แนวทางปกติในงานจริง",
+          "ถ้า commit ไม่ผ่านเพราะยังไม่ได้ตั้ง user.name หรือ user.email ให้ไปตั้งค่าก่อนตามบท Setup Git",
+        ],
         checkpoint:
-          "coverage/ ต้องถูก ignore แบบแชร์ทั้งทีม ส่วน scratch-notes.txt ต้องถูก ignore เฉพาะเครื่องนี้เท่านั้น",
+          ".env.local ต้องถูกถอดออกจาก index แต่ยังอยู่ในเครื่อง, coverage/summary.txt ต้องถูก ignore จาก .gitignore, และ scratch-notes.txt ต้องถูก ignore จาก .git/info/exclude",
       },
     ],
   },

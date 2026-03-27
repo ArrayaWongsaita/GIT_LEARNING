@@ -2,7 +2,7 @@
 // import { LogoImage } from '@/shared/components/icons-logo';
 // import { PUBLIC_ROUTE } from '@/shared/constants';
 
-import { TransitionLink } from "@/features/transitionNavigate/components/TransitionLink";
+import { TransitionLink } from "@/common/transitionNavigate/components/TransitionLink";
 import { PUBLIC_ROUTE } from "../constants/routes/public.constant";
 
 export default function NotFound() {

@@ -14,7 +14,7 @@ import { animate } from "animejs";
 import {
   DURATION_END,
   DURATION_START,
-} from "@/features/transitionNavigate/constants/duration";
+} from "@/common/transitionNavigate/constants/duration";
 import {
   LOGO_URL,
   LOGO_WIDTH,
@@ -22,7 +22,7 @@ import {
   SITE_NAME,
   SHARD_COUNT,
   SHARD_BG,
-} from "@/features/transitionNavigate/constants/transition/shatter";
+} from "@/common/transitionNavigate/constants/transition/shatter";
 import { navigationStore } from "../../stores/navigation.store";
 
 // Pre-compute shard layout (deterministic, no random at render)

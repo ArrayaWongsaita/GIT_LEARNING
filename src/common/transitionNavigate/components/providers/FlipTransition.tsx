@@ -14,14 +14,14 @@ import { animate } from "animejs";
 import {
   DURATION_END,
   DURATION_START,
-} from "@/features/transitionNavigate/constants/duration";
+} from "@/common/transitionNavigate/constants/duration";
 import {
   LOGO_URL,
   LOGO_WIDTH,
   LOGO_HEIGHT,
   SITE_NAME,
   FLIP_BG,
-} from "@/features/transitionNavigate/constants/transition/flip";
+} from "@/common/transitionNavigate/constants/transition/flip";
 import { navigationStore } from "../../stores/navigation.store";
 
 export function FlipTransition({ children }: { children: React.ReactNode }) {

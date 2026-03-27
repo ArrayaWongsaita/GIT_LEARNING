@@ -1,4 +1,4 @@
-import { TransitionLink } from "@/features/transitionNavigate/components/TransitionLink";
+import { TransitionLink } from "@/common/transitionNavigate/components/TransitionLink";
 import type { SidebarDataItem } from "@/shared/types/sidebar.type";
 import {
   SidebarMenuSub as SidebarMenuSubPrimitive,

@@ -14,14 +14,14 @@ import { animate } from "animejs";
 import {
   DURATION_END,
   DURATION_START,
-} from "@/features/transitionNavigate/constants/duration";
+} from "@/common/transitionNavigate/constants/duration";
 import {
   LOGO_URL,
   LOGO_WIDTH,
   LOGO_HEIGHT,
   SITE_NAME,
   ZOOM_BG,
-} from "@/features/transitionNavigate/constants/transition/zoom";
+} from "@/common/transitionNavigate/constants/transition/zoom";
 import { navigationStore } from "../../stores/navigation.store";
 
 // Number of tunnel rings

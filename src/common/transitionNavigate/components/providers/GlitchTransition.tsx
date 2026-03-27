@@ -14,7 +14,7 @@ import { animate } from "animejs";
 import {
   DURATION_END,
   DURATION_START,
-} from "@/features/transitionNavigate/constants/duration";
+} from "@/common/transitionNavigate/constants/duration";
 import {
   LOGO_URL,
   LOGO_WIDTH,
@@ -23,7 +23,7 @@ import {
   GLITCH_BG,
   GLITCH_COLORS,
   GLITCH_CHARS,
-} from "@/features/transitionNavigate/constants/transition/glitch";
+} from "@/common/transitionNavigate/constants/transition/glitch";
 import { navigationStore } from "../../stores/navigation.store";
 
 function randomChar() {

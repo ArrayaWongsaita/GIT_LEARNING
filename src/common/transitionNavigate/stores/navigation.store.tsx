@@ -1,7 +1,7 @@
 import {
   DURATION_END,
   DURATION_START,
-} from "@/features/transitionNavigate/constants/duration";
+} from "@/common/transitionNavigate/constants/duration";
 import type { NavigateFunction } from "react-router";
 
 import { create } from "zustand";

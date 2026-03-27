@@ -13,7 +13,7 @@ import { animate } from "animejs";
 import {
   DURATION_END,
   DURATION_START,
-} from "@/features/transitionNavigate/constants/duration";
+} from "@/common/transitionNavigate/constants/duration";
 import {
   LOGO_URL,
   LOGO_WIDTH,
@@ -22,7 +22,7 @@ import {
   MORPH_BG,
   SITE_NAME,
   SITE_LOADING,
-} from "@/features/transitionNavigate/constants/transition/morph";
+} from "@/common/transitionNavigate/constants/transition/morph";
 import { navigationStore } from "../../stores/navigation.store";
 
 export function MorphTransition({ children }: { children: React.ReactNode }) {

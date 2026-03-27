@@ -1,4 +1,4 @@
-import { TransitionLink } from "@/features/transitionNavigate/components/TransitionLink";
+import { TransitionLink } from "@/common/transitionNavigate/components/TransitionLink";
 import { PUBLIC_ROUTE } from "@/shared/constants/routes/public.constant";
 import {
   ArrowRight,
@@ -39,9 +39,18 @@ const coreFlow = [
 
 const starterCommands = [
   { cmd: "git init", meaning: "เริ่มต้น Git Repository ในโฟลเดอร์ปัจจุบัน" },
-  { cmd: "git status", meaning: "ดูสถานะไฟล์ที่ถูกแก้ไขและไฟล์ที่เตรียม commit" },
-  { cmd: "git add .", meaning: "เพิ่มไฟล์ที่เปลี่ยนแปลงทั้งหมดเข้า staging area" },
-  { cmd: 'git commit -m "เริ่มต้นบทเรียน"', meaning: "สร้าง commit พร้อมข้อความอธิบาย" },
+  {
+    cmd: "git status",
+    meaning: "ดูสถานะไฟล์ที่ถูกแก้ไขและไฟล์ที่เตรียม commit",
+  },
+  {
+    cmd: "git add .",
+    meaning: "เพิ่มไฟล์ที่เปลี่ยนแปลงทั้งหมดเข้า staging area",
+  },
+  {
+    cmd: 'git commit -m "เริ่มต้นบทเรียน"',
+    meaning: "สร้าง commit พร้อมข้อความอธิบาย",
+  },
   { cmd: "git log --oneline", meaning: "ดูประวัติ commit แบบสั้น อ่านง่าย" },
 ] as const;
 
@@ -79,7 +88,9 @@ export default function HomePage() {
               แบบเข้าใจภาพรวมในหน้าเดียว
             </h2>
             <p className="mt-4 max-w-xl text-sm leading-6 text-slate-700 md:text-base">
-              Git คือระบบจัดการเวอร์ชันที่ช่วยให้เราเก็บประวัติโค้ดได้อย่างปลอดภัย ทำงานเป็นทีมได้ง่าย
+              Git
+              คือระบบจัดการเวอร์ชันที่ช่วยให้เราเก็บประวัติโค้ดได้อย่างปลอดภัย
+              ทำงานเป็นทีมได้ง่าย
               และย้อนกลับไปดูหรือแก้ไขงานเวอร์ชันก่อนหน้าได้ทุกเวลา
             </p>
 
@@ -120,10 +131,12 @@ export default function HomePage() {
         id="what-is-version-control"
         className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
       >
-        <h3 className="text-xl font-bold text-slate-900">What is Version Control</h3>
+        <h3 className="text-xl font-bold text-slate-900">
+          What is Version Control
+        </h3>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          การใช้ Version Control ช่วยให้ย้อนโค้ดย้อนเวลาได้, เทียบความต่างได้, ทำงานหลายคนไม่ชนกันง่าย
-          และลดความเสี่ยงเวลามีบั๊กหลัง deploy
+          การใช้ Version Control ช่วยให้ย้อนโค้ดย้อนเวลาได้, เทียบความต่างได้,
+          ทำงานหลายคนไม่ชนกันง่าย และลดความเสี่ยงเวลามีบั๊กหลัง deploy
         </p>
         <div className="mt-4 grid gap-2 text-sm text-slate-700 md:grid-cols-3">
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
@@ -138,11 +151,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="local-vs-remote" className="scroll-mt-24 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <section
+        id="local-vs-remote"
+        className="scroll-mt-24 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]"
+      >
         <article className="rounded-2xl border bg-white p-6 shadow-sm">
-          <h3 className="text-xl font-bold text-slate-900">โฟลว์พื้นฐานที่ต้องเข้าใจ</h3>
+          <h3 className="text-xl font-bold text-slate-900">
+            โฟลว์พื้นฐานที่ต้องเข้าใจ
+          </h3>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            ถ้าเข้าใจ 3 ส่วนนี้ คุณจะอ่านและใช้คำสั่ง Git ได้เร็วขึ้นมาก เพราะทุกคำสั่งจะทำงานอยู่ในโฟลว์นี้
+            ถ้าเข้าใจ 3 ส่วนนี้ คุณจะอ่านและใช้คำสั่ง Git ได้เร็วขึ้นมาก
+            เพราะทุกคำสั่งจะทำงานอยู่ในโฟลว์นี้
           </p>
 
           <div className="mt-6 grid gap-3">
@@ -150,11 +169,18 @@ export default function HomePage() {
               const Icon = item.icon;
               const isLast = index === coreFlow.length - 1;
               return (
-                <div key={item.title} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div
+                  key={item.title}
+                  className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+                >
                   <div className="flex items-center gap-2">
                     <Icon className="size-4 text-orange-600" />
-                    <p className="text-sm font-semibold text-slate-900">{item.title}</p>
-                    {!isLast ? <ArrowRight className="ml-auto size-4 text-slate-400" /> : null}
+                    <p className="text-sm font-semibold text-slate-900">
+                      {item.title}
+                    </p>
+                    {!isLast ? (
+                      <ArrowRight className="ml-auto size-4 text-slate-400" />
+                    ) : null}
                   </div>
                   <p className="mt-2 text-sm text-slate-600">{item.detail}</p>
                 </div>
@@ -175,7 +201,9 @@ export default function HomePage() {
               ทำไมต้องแยก Branch?
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-300">
-              การแยก branch ช่วยให้เราพัฒนาฟีเจอร์ใหม่แบบไม่เสี่ยงทำให้โค้ดหลักพัง และตรวจงานก่อนรวมกลับได้ง่าย
+              การแยก branch
+              ช่วยให้เราพัฒนาฟีเจอร์ใหม่แบบไม่เสี่ยงทำให้โค้ดหลักพัง
+              และตรวจงานก่อนรวมกลับได้ง่าย
             </p>
           </div>
         </aside>
@@ -187,10 +215,13 @@ export default function HomePage() {
       >
         <div className="flex flex-wrap items-center gap-2">
           <ShieldCheck className="size-5 text-emerald-400" />
-          <h3 className="text-lg font-bold">ชุดคำสั่งเริ่มต้นที่ควรลองพิมพ์จริง</h3>
+          <h3 className="text-lg font-bold">
+            ชุดคำสั่งเริ่มต้นที่ควรลองพิมพ์จริง
+          </h3>
         </div>
         <p className="mt-2 text-sm text-slate-300">
-          เริ่มจากคำสั่งชุดนี้ในโปรเจกต์ทดลอง 1 โฟลเดอร์ เพื่อให้เห็นภาพการทำงานของ Git ตั้งแต่ต้นจนจบ
+          เริ่มจากคำสั่งชุดนี้ในโปรเจกต์ทดลอง 1 โฟลเดอร์
+          เพื่อให้เห็นภาพการทำงานของ Git ตั้งแต่ต้นจนจบ
         </p>
 
         <pre className="mt-4 overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 p-4 text-xs text-cyan-200 md:text-sm">

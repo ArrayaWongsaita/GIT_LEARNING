@@ -26,8 +26,8 @@ export default function MainLayout() {
   const pathname = useLocation().pathname;
   const activeLesson = useMemo(() => {
     const normalizedPathname = normalizePath(pathname);
-    return GIT_LESSONS.find(
-      (lesson) => isLessonPathActive(lesson, normalizedPathname),
+    return GIT_LESSONS.find((lesson) =>
+      isLessonPathActive(lesson, normalizedPathname),
     );
   }, [pathname]);
 
@@ -38,7 +38,9 @@ export default function MainLayout() {
         <header className="flex items-center gap-2 border-b px-3 py-2">
           <SidebarTrigger />
           <div>
-            <p className="text-xs text-muted-foreground">Git Command Learning</p>
+            <p className="text-xs text-muted-foreground">
+              Git Command Learning
+            </p>
             <h1 className="text-sm font-semibold">
               {activeLesson ? activeLesson.title : "Git Lessons"}
             </h1>

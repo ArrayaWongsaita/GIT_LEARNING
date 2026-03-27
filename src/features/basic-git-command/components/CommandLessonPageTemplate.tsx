@@ -11,6 +11,8 @@ import {
 type CommandLessonCommand = {
   command: string;
   description: string;
+  label?: string;
+  language?: string;
 };
 
 type CommandLessonSectionItem = {
@@ -135,6 +137,8 @@ function CommandLessonLabAccordion({
                             <CommandBlock
                               command={commandItem.command}
                               status={status}
+                              label={commandItem.label}
+                              language={commandItem.language}
                               onCopy={() => {
                                 void onCopyCommand(commandKey, commandItem.command);
                               }}
@@ -288,6 +292,8 @@ export function CommandLessonPageTemplate({
                               <CommandBlock
                                 command={commandItem.command}
                                 status={status}
+                                label={commandItem.label}
+                                language={commandItem.language}
                                 onCopy={() => {
                                   void handleCopyCommand(
                                     commandKey,

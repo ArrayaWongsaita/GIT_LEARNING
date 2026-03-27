@@ -7,6 +7,8 @@ type CommandBlockProps = {
   command: string;
   status?: CommandCopyStatus;
   onCopy: () => void;
+  label?: string;
+  language?: string;
 };
 
 type ShikiModule = typeof import("shiki");
@@ -20,11 +22,24 @@ const loadShikiModule = () => {
   return shikiModulePromise;
 };
 
-export function CommandBlock({ command, status, onCopy }: CommandBlockProps) {
+export function CommandBlock({
+  command,
+  status,
+  onCopy,
+  label = "Command",
+  language = "bash",
+}: CommandBlockProps) {
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
+  const shouldRenderAsPlainText = language === "text";
 
   useEffect(() => {
     let isActive = true;
+
+    if (shouldRenderAsPlainText) {
+      return () => {
+        isActive = false;
+      };
+    }
 
     const generateHighlightedHtml = async () => {
       try {
@@ -55,13 +70,13 @@ export function CommandBlock({ command, status, onCopy }: CommandBlockProps) {
     return () => {
       isActive = false;
     };
-  }, [command]);
+  }, [command, language, shouldRenderAsPlainText]);
 
   return (
     <div className="rounded-xl border border-border bg-card p-3 md:p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          Command
+          {label}
         </p>
         <div className="flex items-center gap-2">
           <Button
@@ -70,7 +85,7 @@ export function CommandBlock({ command, status, onCopy }: CommandBlockProps) {
             size="sm"
             className="h-8 rounded-lg px-3 text-xs font-semibold"
             onClick={onCopy}
-            aria-label={`Copy command: ${command}`}
+            aria-label={`Copy ${label.toLowerCase()}: ${command}`}
           >
             Copy
           </Button>
@@ -94,7 +109,7 @@ export function CommandBlock({ command, status, onCopy }: CommandBlockProps) {
           ) : null}
         </div>
       </div>
-      {highlightedHtml ? (
+      {!shouldRenderAsPlainText && highlightedHtml ? (
         <div
           className="mt-3 overflow-x-auto rounded-lg border border-white/10 bg-black shadow-inner [&_.shiki]:m-0 [&_.shiki]:min-w-max [&_.shiki]:p-4 [&_.shiki]:text-sm [&_.shiki]:leading-7 [&_.shiki]:!bg-black"
           dangerouslySetInnerHTML={{ __html: highlightedHtml }}

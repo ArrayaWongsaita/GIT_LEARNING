@@ -115,7 +115,10 @@ export default function ConfigGitPage() {
                           const status = copyStatusByCommand[commandKey];
 
                           return (
-                            <div key={commandKey} className="space-y-2">
+                            <div
+                              key={commandKey}
+                              className="rounded-xl border border-border/70 bg-muted/30 p-3"
+                            >
                               <CommandBlock
                                 command={commandItem.command}
                                 status={status}
@@ -123,9 +126,14 @@ export default function ConfigGitPage() {
                                   handleCopyCommand(commandKey, commandItem.command)
                                 }
                               />
-                              <p className="px-1 text-sm leading-6 text-muted-foreground">
-                                {commandItem.description}
-                              </p>
+                              <div className="mt-3 rounded-lg border border-border bg-background px-4 py-3">
+                                <p className="text-xs font-semibold text-muted-foreground">
+                                  คำอธิบาย
+                                </p>
+                                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                                  {commandItem.description}
+                                </p>
+                              </div>
                             </div>
                           );
                         })}
