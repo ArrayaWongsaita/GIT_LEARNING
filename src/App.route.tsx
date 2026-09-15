@@ -11,34 +11,31 @@ import { undoHistoryRoutes } from "./features/undo-history/routes/undo-history.r
 import { remoteCollaborationRoutes } from "./features/remote-collaboration/routes/remote-collaboration.routes";
 import { labRoutes } from "./features/lab/routes/lab.routes";
 
-const appRouter = createBrowserRouter(
-  [
-    {
-      path: "/",
-      Component: MainLayout,
-      children: [
-        {
-          index: true,
-          element: (
-            <Navigate
-              replace
-              to={PUBLIC_ROUTE.LESSON.INTRODUCTION.getWhatIsGitPath()}
-            />
-          ),
-        },
-        introductionRoutes,
-        setupGitRoutes,
-        basicGitCommandRoutes,
-        branchingRoutes,
-        mergeRebaseRoutes,
-        undoHistoryRoutes,
-        remoteCollaborationRoutes,
-        labRoutes,
-        { path: "*", Component: NotFound },
-      ],
-    },
-  ],
-  { basename: "/GIT_LEARNING/" },
-);
+const appRouter = createBrowserRouter([
+  {
+    path: "/",
+    Component: MainLayout,
+    children: [
+      {
+        index: true,
+        element: (
+          <Navigate
+            replace
+            to={PUBLIC_ROUTE.LESSON.INTRODUCTION.getWhatIsGitPath()}
+          />
+        ),
+      },
+      introductionRoutes,
+      setupGitRoutes,
+      basicGitCommandRoutes,
+      branchingRoutes,
+      mergeRebaseRoutes,
+      undoHistoryRoutes,
+      remoteCollaborationRoutes,
+      labRoutes,
+      { path: "*", Component: NotFound },
+    ],
+  },
+]);
 
 export default appRouter;
