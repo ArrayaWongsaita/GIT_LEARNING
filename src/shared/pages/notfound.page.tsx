@@ -2,12 +2,12 @@
 // import { LogoImage } from '@/shared/components/icons-logo';
 // import { PUBLIC_ROUTE } from '@/shared/constants';
 
-import { TransitionLink } from "@/features/transitionNavigate/components/TransitionLink";
+import { TransitionLink } from "@/common/transitionNavigate/components/TransitionLink";
 import { PUBLIC_ROUTE } from "../constants/routes/public.constant";
 
 export default function NotFound() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-primary px-4">
+    <div className="flex items-center justify-center min-h-screen  px-4">
       <div className="text-center max-w-md mx-auto">
         {/* Dev Nest Logo */}
         <div className="mb-8">

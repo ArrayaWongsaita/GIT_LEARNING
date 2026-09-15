@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 "use client"
 
 import * as React from "react"
@@ -31,6 +32,27 @@ const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
+
+const getStoredSidebarState = () => {
+  if (typeof document === "undefined") {
+    return null
+  }
+
+  const sidebarCookie = document.cookie
+    .split("; ")
+    .find((cookie) => cookie.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
+    ?.split("=")[1]
+
+  if (sidebarCookie === "true") {
+    return true
+  }
+
+  if (sidebarCookie === "false") {
+    return false
+  }
+
+  return null
+}
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed"
@@ -71,7 +93,9 @@ function SidebarProvider({
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
-  const [_open, _setOpen] = React.useState(defaultOpen)
+  const [_open, _setOpen] = React.useState(
+    () => getStoredSidebarState() ?? defaultOpen
+  )
   const open = openProp ?? _open
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
@@ -295,6 +319,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
         "in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize",
         "[[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-state=collapsed]_&]:cursor-w-resize",
         "group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:left-full hover:group-data-[collapsible=offcanvas]:bg-sidebar",
+        "[[data-collapsible=offcanvas]_&]:pointer-events-none [[data-collapsible=offcanvas]_&]:opacity-0",
         "[[data-side=left][data-collapsible=offcanvas]_&]:-right-2",
         "[[data-side=right][data-collapsible=offcanvas]_&]:-left-2",
         className
@@ -606,10 +631,11 @@ function SidebarMenuSkeleton({
 }: React.ComponentProps<"div"> & {
   showIcon?: boolean
 }) {
-  // Random width between 50 to 90%.
-  const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`
-  }, [])
+  const skeletonId = React.useId()
+  const widthSeed = Array.from(skeletonId).reduce((total, char) => {
+    return total + char.charCodeAt(0)
+  }, 0)
+  const width = `${50 + (widthSeed % 41)}%`
 
   return (
     <div
