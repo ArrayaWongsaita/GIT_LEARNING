@@ -8,6 +8,12 @@ import {
   TerminalSquare,
 } from "lucide-react";
 
+import { TransitionLink } from "@/features/transitionNavigate/components/TransitionLink";
+import { Button } from "@/shared/components/ui/button";
+import { LESSONS, toLessonPath } from "@/shared/constants/lessons.constant";
+
+const firstLesson = LESSONS[0];
+
 const coreFlow = [
   {
     title: "Working Directory",
@@ -65,6 +71,17 @@ export default function HomePage() {
               <span className="rounded-full bg-emerald-600 px-3 py-1 font-medium text-white">
                 Safe History
               </span>
+            </div>
+
+            <div className="mt-6">
+              <Button asChild size="lg">
+                <TransitionLink
+                  to={toLessonPath(firstLesson.topicSlug, firstLesson.slug)}
+                >
+                  เริ่มบทเรียนแรก
+                  <ArrowRight />
+                </TransitionLink>
+              </Button>
             </div>
           </div>
 

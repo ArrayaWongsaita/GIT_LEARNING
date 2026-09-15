@@ -10,7 +10,15 @@ import {
   History,
   ShieldCheck,
   TerminalSquare,
+  type LucideIcon,
 } from "lucide-react";
+import { matchPath, useLocation } from "react-router";
+
+import { TransitionLink } from "@/features/transitionNavigate/components/TransitionLink";
+import {
+  LESSON_TOPICS,
+  toLessonPath,
+} from "@/shared/constants/lessons.constant";
 import {
   Sidebar,
   SidebarContent,
@@ -27,63 +35,39 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,
+  useSidebar,
 } from "../ui/sidebar";
 
-const gitStudyTopics = [
-  {
-    title: "Introduction",
-    icon: BookOpen,
-    subtopics: ["What is Git?", "Why Version Control", "Local vs Remote", "Basic Git Terms"],
-  },
-  {
-    title: "Setup Git",
-    icon: TerminalSquare,
-    subtopics: ["Install Git", "git config user", "SSH Key Setup", "Check Version"],
-  },
-  {
-    title: "Repository Basics",
-    icon: FolderGit2,
-    subtopics: ["git init", "git clone", ".gitignore", "Repository Structure"],
-  },
-  {
-    title: "Commit Workflow",
-    icon: GitCommitHorizontal,
-    subtopics: ["git status", "git add", "git commit", "Commit Message Rules"],
-  },
-  {
-    title: "Branching",
-    icon: GitBranch,
-    subtopics: ["git branch", "git switch", "Feature Branch", "Branch Naming"],
-  },
-  {
-    title: "Merge & Rebase",
-    icon: GitMerge,
-    subtopics: ["git merge", "git rebase", "Resolve Conflicts", "Fast-forward Merge"],
-  },
-  {
-    title: "Undo & History",
-    icon: History,
-    subtopics: ["git log", "git restore", "git reset", "git reflog"],
-  },
-  {
-    title: "Remote Collaboration",
-    icon: ShieldCheck,
-    subtopics: ["git remote", "git pull", "git push", "Pull Request Flow"],
-  },
-] as const;
+const TOPIC_ICONS: Record<string, LucideIcon> = {
+  introduction: BookOpen,
+  "setup-git": TerminalSquare,
+  "repository-basics": FolderGit2,
+  "commit-workflow": GitCommitHorizontal,
+  branching: GitBranch,
+  "merge-rebase": GitMerge,
+  "undo-history": History,
+  "remote-collaboration": ShieldCheck,
+};
 
 export default function MainSidebar() {
-  const [openTopics, setOpenTopics] = useState<Record<string, boolean>>(() =>
-    gitStudyTopics.reduce<Record<string, boolean>>((acc, topic, index) => {
-      acc[topic.title] = index === 0;
-      return acc;
-    }, {}),
+  const { pathname } = useLocation();
+  const { setOpenMobile } = useSidebar();
+
+  const lessonMatch = matchPath("/lessons/:topicSlug/:lessonSlug", pathname);
+  const activeTopicSlug = lessonMatch?.params.topicSlug;
+  const activeLessonSlug = lessonMatch?.params.lessonSlug;
+
+  const [openTopics, setOpenTopics] = useState<Record<string, boolean | undefined>>(
+    {},
   );
 
-  const toggleTopic = (title: string) => {
+  const defaultOpenSlug = activeTopicSlug ?? LESSON_TOPICS[0].slug;
+  const isTopicOpen = (slug: string) => openTopics[slug] ?? slug === defaultOpenSlug;
+
+  const toggleTopic = (slug: string) => {
     setOpenTopics((prev) => ({
       ...prev,
-      [title]: !prev[title],
+      [slug]: !(prev[slug] ?? slug === defaultOpenSlug),
     }));
   };
 
@@ -102,17 +86,17 @@ export default function MainSidebar() {
           <SidebarGroupLabel>Lessons</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {gitStudyTopics.map((topic) => {
-                const Icon = topic.icon;
-                const isOpen = openTopics[topic.title];
+              {LESSON_TOPICS.map((topic) => {
+                const Icon = TOPIC_ICONS[topic.slug] ?? BookOpen;
+                const isOpen = isTopicOpen(topic.slug);
                 return (
-                  <SidebarMenuItem key={topic.title}>
+                  <SidebarMenuItem key={topic.slug}>
                     <SidebarMenuButton
                       type="button"
                       isActive={isOpen}
                       tooltip={topic.title}
                       aria-expanded={isOpen}
-                      onClick={() => toggleTopic(topic.title)}
+                      onClick={() => toggleTopic(topic.slug)}
                     >
                       <Icon />
                       <span>{topic.title}</span>
@@ -122,11 +106,21 @@ export default function MainSidebar() {
                     {isOpen ? (
                       <SidebarMenuSub>
                         {topic.subtopics.map((subtopic) => (
-                          <SidebarMenuSubItem key={subtopic}>
-                            <SidebarMenuSubButton asChild>
-                              <button type="button" className="w-full cursor-pointer text-left">
-                                <span>{subtopic}</span>
-                              </button>
+                          <SidebarMenuSubItem key={subtopic.slug}>
+                            <SidebarMenuSubButton
+                              asChild
+                              isActive={
+                                activeTopicSlug === topic.slug &&
+                                activeLessonSlug === subtopic.slug
+                              }
+                            >
+                              <TransitionLink
+                                to={toLessonPath(topic.slug, subtopic.slug)}
+                                className="w-full cursor-pointer text-left"
+                                onClick={() => setOpenMobile(false)}
+                              >
+                                <span>{subtopic.title}</span>
+                              </TransitionLink>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
                         ))}
